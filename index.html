@@ -608,7 +608,7 @@
   const sIn = $("s"), sOut = $("s-out"), RIn = $("R"), ROut = $("R-out"), playBtn = $("play"), tourBtn = $("tour");
   function setChip(el, on, txtOn, txtOff) { el.className = "chip " + (on ? "yes" : "no"); el.textContent = (on ? "✓ " : "✗ ") + (on ? txtOn : txtOff); }
   function applyMode(m) {
-    state.mode = m; state.minArea = Infinity;
+    state.mode = m; state.minArea = Infinity; state.t = 0;
     const M = MODES[m];
     $("cap-eyebrow").textContent = `Scene ${M.n} of 4`;
     $("cap-title").textContent = M.title;
@@ -647,7 +647,7 @@
       if (state.T > profileLength(state.mode)) {
         state.T = 0;
         if (state.tour) applyMode(ORDER[(ORDER.indexOf(state.mode) + 1) % ORDER.length]);
-        else state.minArea = Infinity;
+        else { state.minArea = Infinity; state.t = 0; }
       }
       state.s = profile(state.mode, state.T);
       sIn.value = state.s;

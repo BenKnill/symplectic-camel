@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Symplectic Camel · film</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root { --bg:#0A0D14; --panel:#10151F; --line:#1F2736; --line-2:#2C3649; --text:#DCE2EC; --muted:#8A95AA; --faint:#5A6479;
+    --cool:#4FD1C5; --lav:#A99CFF; --amber:#FFB547; --glass:#6FA8FF;
+    --serif:"STIX Two Text","Times New Roman",serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",Menlo,monospace; }
+  html, body { margin:0; width:1920px; height:1080px; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--sans); }
+  #frame { position:relative; width:1920px; height:1080px; overflow:hidden;
+    background: radial-gradient(90% 90% at 42% 48%, #111827 0%, var(--bg) 68%); }
+  #gl { position:absolute; inset:0; width:1920px; height:1080px; }
+  .abs { position:absolute; }
+  .axis-label { position:absolute; font-family:var(--serif); font-style:italic; font-size:30px; color:var(--muted); transform:translate(-50%,-50%); white-space:nowrap; }
+
+  #caption { left:72px; top:64px; display:flex; flex-direction:column; gap:10px; max-width:760px; }
+  #caption .eyebrow { font-size:17px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); }
+  #caption .title { font-family:var(--serif); font-weight:600; font-size:46px; line-height:1.1; }
+  #caption .formula { font-family:var(--serif); font-size:31px; color:var(--glass); }
+  .chips { display:flex; gap:10px; margin-top:4px; }
+  .chip { font-family:var(--mono); font-size:18px; padding:3px 12px; border-radius:999px; border:1px solid var(--line-2); }
+  .chip.yes { color:#5FD39A; border-color:rgba(95,211,154,.45); }
+  .chip.no { color:#FF7A6B; border-color:rgba(255,122,107,.45); }
+
+  #titlecard { left:0; right:0; top:360px; text-align:center; }
+  #titlecard .t { font-family:var(--serif); font-weight:600; font-size:110px; letter-spacing:.01em; }
+  #titlecard .s { font-family:var(--serif); font-style:italic; font-size:40px; color:var(--muted); margin-top:14px; }
+
+  #eqcard { left:72px; top:64px; display:grid; grid-template-columns:auto auto; gap:14px 28px; align-items:baseline; font-family:var(--serif); }
+  #eqcard .k { font-size:17px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-family:var(--sans); }
+  #eqcard .v { font-size:38px; }
+  #eqcard .v b { font-weight:400; color:var(--glass); }
+
+  #legend { left:72px; top:72px; display:flex; flex-direction:column; gap:10px; font-size:20px; color:var(--muted); }
+  #legend .row { display:flex; align-items:center; gap:12px; }
+  #legend .grad { width:160px; height:10px; border-radius:5px; background:linear-gradient(90deg,var(--cool),var(--lav)); }
+  #legend .sw { width:14px; height:14px; border-radius:50%; background:var(--amber); box-shadow:0 0 10px var(--amber); }
+  #legend i { font-family:var(--serif); font-size:24px; color:var(--text); }
+
+  #col { left:1318px; top:92px; width:540px; display:flex; flex-direction:column; gap:14px; }
+  .ctitle { font-size:17px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .ctitle i { font-family:var(--serif); font-size:25px; letter-spacing:0; text-transform:none; color:var(--text); }
+  #shadowA { width:540px; height:540px; border-radius:6px; background:#141A26; border:1px solid var(--line); display:block; }
+  #readouts { display:flex; justify-content:space-between; align-items:baseline; font-size:19px; color:var(--muted); }
+  #readouts b { font-family:var(--mono); font-weight:500; color:var(--text); font-size:30px; margin-left:10px; font-variant-numeric:tabular-nums; }
+  #readouts span.h b { color:var(--glass); font-size:24px; }
+  #trace { width:540px; height:168px; display:block; }
+
+  #sub { left:0; bottom:58px; text-align:center; pointer-events:none; }
+  #sub span { display:inline-block; max-width:1120px; font-size:36px; line-height:1.3; font-weight:400; color:#F1F4F9;
+    text-shadow:0 0 18px rgba(10,13,20,.95), 0 2px 4px rgba(10,13,20,.9); text-wrap:balance; }
+
+  #outro { left:0; right:0; top:370px; text-align:center; }
+  #outro .t { font-family:var(--serif); font-weight:600; font-size:84px; }
+  #outro .u { font-family:var(--mono); font-size:32px; color:var(--glass); margin-top:26px; }
+  #outro .c { font-size:22px; color:var(--faint); margin-top:40px; }
+</style>
+</head>
+<body>
+<div id="frame">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <span class="axis-label" id="lab-x1">x₁</span>
+  <span class="axis-label" id="lab-y1">y₁</span>
+  <span class="axis-label" id="lab-x2">x₂</span>
+
+  <div class="abs" id="caption">
+    <div class="eyebrow" id="cap-eyebrow"></div>
+    <div class="title" id="cap-title"></div>
+    <div class="formula" id="cap-formula"></div>
+    <div class="chips" id="cap-chips"></div>
+  </div>
+
+  <div class="abs" id="eqcard">
+    <span class="k" id="eq-k1">positions</span><span class="v" id="eq-v1"><i>x</i>₁, <i>x</i>₂</span>
+    <span class="k" id="eq-k2">momenta</span><span class="v" id="eq-v2"><i>y</i>₁, <i>y</i>₂</span>
+    <span class="k" id="eq-k3">symplectic form</span><span class="v" id="eq-v3"><b>ω</b> = d<i>x</i>₁ ∧ d<i>y</i>₁ + d<i>x</i>₂ ∧ d<i>y</i>₂</span>
+  </div>
+
+  <div class="abs" id="titlecard">
+    <div class="t">The Symplectic Camel</div>
+    <div class="s">Gromov’s non-squeezing theorem</div>
+  </div>
+
+  <div class="abs" id="legend">
+    <div class="row"><span>color = <i>y</i>₂</span><span class="grad"></span></div>
+    <div class="row"><span class="sw"></span>outside the cylinder</div>
+  </div>
+
+  <div class="abs" id="col">
+    <div class="ctitle" id="colTitle">Shadow on the <i>(x₁, y₁)</i> plane</div>
+    <canvas id="shadowA" width="540" height="540"></canvas>
+    <div id="readouts"><span>shadow area<b id="ro-area">1.00 πr²</b></span><span class="h">hole<b id="ro-hole">0.52 πr²</b></span></div>
+    <canvas id="trace" width="540" height="168"></canvas>
+  </div>
+
+  <div class="abs" id="outro">
+    <div class="t">Try to squeeze it yourself</div>
+    <div class="u">benknill.github.io/symplectic-camel</div>
+    <div class="c">Narration synthesized with VoxCPM2 · rendered in WebGL</div>
+  </div>
+
+  <div class="abs" id="sub"><span id="subText"></span></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="timing.js"></script>
+<script>
+(() => {
+  const W = 1920, H = 1080;
+  const T = window.TIMING;
+  const beat = id => T.beats[id];
+  const line = (id, i) => T.beats[id].lines[i];
+  const clamp01 = x => Math.min(1, Math.max(0, x));
+  const ease = x => { x = clamp01(x); return x * x * x * (x * (6 * x - 15) + 10); };
+  const sm = (t, a, b) => ease((t - a) / Math.max(1e-6, b - a));
+  const $ = id => document.getElementById(id);
+
+  // ---------- deterministic sample of S^3 ----------
+  let seed = 12345;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return (seed + 0.5) / 4294967296; };
+  const Q = new URLSearchParams(location.search);
+  const SS = +(Q.get("ss") || 1), N = +(Q.get("n") || 140000), PSIZE = +(Q.get("psize") || 15); const GAIN = +(Q.get("gain") || 1);
+  const base = new Float32Array(N * 4);
+  for (let i = 0; i < N; i++) {
+    const r1 = Math.sqrt(-2 * Math.log(rnd())), a1 = 2 * Math.PI * rnd();
+    const r2 = Math.sqrt(-2 * Math.log(rnd())), a2 = 2 * Math.PI * rnd();
+    const a = r1 * Math.cos(a1), b = r1 * Math.sin(a1), c = r2 * Math.cos(a2), d = r2 * Math.sin(a2);
+    const n = Math.hypot(a, b, c, d) || 1;
+    base[4 * i] = a / n; base[4 * i + 1] = b / n; base[4 * i + 2] = c / n; base[4 * i + 3] = d / n;
+  }
+  const X1 = new Float32Array(N), Y1 = new Float32Array(N), X2 = new Float32Array(N), Y2 = new Float32Array(N), IN = new Uint8Array(N);
+  const R = 0.72, R2 = R * R;
+
+  function computeMap(mode, s, t, lagTest) {
+    if (mode === "vol" || mode === "lag") {
+      const a = 1 + s * (0.84 * R - 1), ia = 1 / a;
+      for (let i = 0; i < N; i++) {
+        const j = 4 * i;
+        if (mode === "vol") { X1[i] = base[j] * a; Y1[i] = base[j + 1] * a; X2[i] = base[j + 2] * ia; Y2[i] = base[j + 3] * ia; }
+        else { X1[i] = base[j] * a; Y1[i] = base[j + 1] * ia; X2[i] = base[j + 2] * a; Y2[i] = base[j + 3] * ia; }
+      }
+    } else if (mode === "lin") {
+      const l = 1 - 0.6 * s, il = 1 / l;
+      for (let i = 0; i < N; i++) { const j = 4 * i; X1[i] = base[j] * l; Y1[i] = base[j + 1] * il; X2[i] = base[j + 2]; Y2[i] = base[j + 3]; }
+    } else {
+      const phi = s * 0.95 * Math.sin(0.31 * t + 0.4), cp = Math.cos(phi), sp = Math.sin(phi);
+      const psi = s * 0.8 * Math.sin(0.19 * t + 2.0), cq = Math.cos(psi), sq = Math.sin(psi);
+      const k = 2.3, Ak = 0.95 * s / k, Bk = 0.8 * s / k, w1 = 0.7 * t, w2 = 0.53 * t + 1.1;
+      const lam = 1 - 0.5 * s * (0.6 + 0.4 * Math.sin(0.43 * t)), il = 1 / lam;
+      const th = s * 0.35 * t, ct = Math.cos(th), st = Math.sin(th);
+      for (let i = 0; i < N; i++) {
+        const j = 4 * i;
+        let x1 = base[j], y1 = base[j + 1], x2 = base[j + 2], y2 = base[j + 3], u, v;
+        u = cp * x1 - sp * x2; v = sp * x1 + cp * x2; x1 = u; x2 = v;
+        u = cp * y1 - sp * y2; v = sp * y1 + cp * y2; y1 = u; y2 = v;
+        y1 += Ak * Math.sin(k * x1 + w1) * Math.cos(k * x2);
+        y2 += Ak * Math.cos(k * x1 + w1) * Math.sin(k * x2);
+        x1 += Bk * Math.cos(k * y1) * Math.sin(k * y2 + w2);
+        x2 += Bk * Math.sin(k * y1) * Math.cos(k * y2 + w2);
+        x1 *= lam; y1 *= il;
+        u = ct * x1 - st * y1; v = st * x1 + ct * y1; x1 = u; y1 = v;
+        u = cq * x1 - sq * x2; v = sq * x1 + cq * x2; x1 = u; x2 = v;
+        u = cq * y1 - sq * y2; v = sq * y1 + cq * y2; y1 = u; y2 = v;
+        X1[i] = x1; Y1[i] = y1; X2[i] = x2; Y2[i] = y2;
+      }
+    }
+    for (let i = 0; i < N; i++) {
+      const b = lagTest ? X2[i] : Y1[i];
+      IN[i] = X1[i] * X1[i] + b * b <= R2 ? 1 : 0;
+    }
+  }
+
+  const G = 170, occ = new Uint8Array(G * G);
+  function shadowArea(U, V) {
+    let minu = Infinity, maxu = -Infinity, minv = Infinity, maxv = -Infinity;
+    for (let i = 0; i < N; i++) { const u = U[i], v = V[i]; if (u < minu) minu = u; if (u > maxu) maxu = u; if (v < minv) minv = v; if (v > maxv) maxv = v; }
+    const cw = (maxu - minu) / G + 1e-9, ch = (maxv - minv) / G + 1e-9;
+    occ.fill(0);
+    for (let i = 0; i < N; i++) { let a = ((U[i] - minu) / cw) | 0, b = ((V[i] - minv) / ch) | 0; if (a >= G) a = G - 1; if (b >= G) b = G - 1; occ[b * G + a] = 1; }
+    let count = 0, edge = 0;
+    for (let b = 0; b < G; b++) for (let a = 0; a < G; a++) {
+      const q = b * G + a; if (!occ[q]) continue; count++;
+      if (a === 0 || b === 0 || a === G - 1 || b === G - 1 || !occ[q - 1] || !occ[q + 1] || !occ[q - G] || !occ[q + G]) edge++;
+    }
+    return (count - 0.5 * edge) * cw * ch;
+  }
+  computeMap("vol", 0, 0, false);
+  const areaCal = Math.PI / shadowArea(X1, Y1);
+
+  // ---------- three.js scene ----------
+  const renderer = new THREE.WebGLRenderer({ canvas: $("gl"), antialias: true, preserveDrawingBuffer: true, alpha: true });
+  renderer.setPixelRatio(SS); renderer.setSize(W, H, false); renderer.setClearColor(0x000000, 0);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(34, W / H, 0.1, 100);
+  const pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+  const geo = new THREE.BufferGeometry();
+  const posAttr = new THREE.BufferAttribute(pos, 3), colAttr = new THREE.BufferAttribute(col, 3);
+  geo.setAttribute("position", posAttr); geo.setAttribute("aColor", colAttr);
+  const pmat = new THREE.ShaderMaterial({
+    uniforms: { uSize: { value: PSIZE * SS }, uAlpha: { value: 0.6 } },
+    vertexShader: `attribute vec3 aColor; varying vec3 vColor; uniform float uSize;
+      void main(){ vec4 mv = modelViewMatrix*vec4(position,1.0); gl_Position = projectionMatrix*mv; gl_PointSize = max(1.5, uSize/-mv.z); vColor = aColor; }`,
+    fragmentShader: `varying vec3 vColor; uniform float uAlpha;
+      void main(){ vec2 d = gl_PointCoord-0.5; float r2 = dot(d,d); if (r2>0.25) discard; float a = exp(-r2*12.0)*uAlpha; gl_FragColor = vec4(vColor*a, a); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const cloud = new THREE.Points(geo, pmat); cloud.frustumCulled = false; scene.add(cloud);
+
+  const cylParent = new THREE.Group(), cyl = new THREE.Group(); cylParent.add(cyl); scene.add(cylParent);
+  const CH = 5.6, cylMats = [];
+  const wallMat = new THREE.MeshBasicMaterial({ color: 0x6FA8FF, transparent: true, opacity: 0.06, side: THREE.DoubleSide, depthWrite: false });
+  cyl.add(new THREE.Mesh(new THREE.CylinderGeometry(1, 1, CH, 160, 1, true), wallMat)); cylMats.push([wallMat, 0.06]);
+  const ringPts = []; for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; ringPts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a))); }
+  const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+  for (let k = -4; k <= 4; k++) {
+    const op = k === 0 ? 0.8 : 0.24 - Math.abs(k) * 0.035;
+    const m = new THREE.LineBasicMaterial({ color: 0x6FA8FF, transparent: true, opacity: op });
+    const r = new THREE.Line(ringGeo, m); r.position.y = k * 0.65; cyl.add(r); cylMats.push([m, op]);
+  }
+  for (let k = 0; k < 16; k++) {
+    const a = k / 16 * Math.PI * 2;
+    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(Math.cos(a), -CH / 2, Math.sin(a)), new THREE.Vector3(Math.cos(a), CH / 2, Math.sin(a))]);
+    const m = new THREE.LineBasicMaterial({ color: 0x6FA8FF, transparent: true, opacity: 0.1 }); cyl.add(new THREE.Line(g, m)); cylMats.push([m, 0.1]);
+  }
+  cyl.scale.set(R, 1, R);
+
+  const planeMat = new THREE.MeshBasicMaterial({ color: 0x6FA8FF, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 4.4), planeMat); plane.rotation.x = -Math.PI / 2; scene.add(plane);
+  const planeEdgeMat = new THREE.LineBasicMaterial({ color: 0x6FA8FF, transparent: true, opacity: 0 });
+  const pe = 2.2, planeEdge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-pe, 0, -pe), new THREE.Vector3(pe, 0, -pe), new THREE.Vector3(pe, 0, pe), new THREE.Vector3(-pe, 0, pe)]), planeEdgeMat);
+  scene.add(planeEdge);
+
+  const AX = 2.35, axMat = new THREE.LineBasicMaterial({ color: 0x3A465C, transparent: true, opacity: 0 });
+  [[AX, 0, 0], [0, AX, 0], [0, 0, AX]].forEach(p => {
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-p[0], -p[1], -p[2]), new THREE.Vector3(...p)]), axMat));
+  });
+  const labels = [[$("lab-x1"), new THREE.Vector3(AX + 0.2, 0, 0)], [$("lab-y1"), new THREE.Vector3(0, 0, AX + 0.2)], [$("lab-x2"), new THREE.Vector3(0, AX + 0.2, 0)]];
+
+  const COOL = [0.31, 0.82, 0.77], LAV = [0.66, 0.61, 1.0], AMB = [1.3, 0.8, 0.26];
+
+  // ---------- 2D panels ----------
+  const pctx = $("shadowA").getContext("2d"), PW = 540;
+  const img = pctx.createImageData(PW, PW), cin = new Float32Array(PW * PW), cout = new Float32Array(PW * PW);
+  function drawShadow(U, V, labelsUV) {
+    cin.fill(0); cout.fill(0);
+    const L = 2.7, sc = PW / (2 * L), c = PW / 2;
+    for (let i = 0; i < N; i++) {
+      const px = (c + U[i] * sc) | 0, py = (c - V[i] * sc) | 0;
+      if (px < 0 || py < 0 || px >= PW || py >= PW) continue;
+      const q = py * PW + px; if (IN[i]) cin[q]++; else cout[q]++;
+    }
+    const g = Math.PI * sc * sc / N * 1.1, d = img.data;
+    for (let q = 0, o = 0; q < PW * PW; q++, o += 4) {
+      const a = cin[q] ? 1 - Math.exp(-cin[q] * g) : 0, b = cout[q] ? 1 - Math.exp(-cout[q] * g) : 0;
+      d[o] = 20 + a * 119 + b * 235; d[o + 1] = 26 + a * 203 + b * 150; d[o + 2] = 38 + a * 189 + b * 30; d[o + 3] = 255;
+    }
+    pctx.putImageData(img, 0, 0);
+    pctx.save();
+    pctx.strokeStyle = "rgba(90,100,121,.55)"; pctx.lineWidth = 1;
+    pctx.beginPath(); pctx.moveTo(0, c); pctx.lineTo(PW, c); pctx.moveTo(c, 0); pctx.lineTo(c, PW); pctx.stroke();
+    pctx.setLineDash([6, 6]); pctx.strokeStyle = "rgba(220,226,236,.4)";
+    pctx.beginPath(); pctx.arc(c, c, sc, 0, 2 * Math.PI); pctx.stroke(); pctx.setLineDash([]);
+    pctx.lineWidth = 3; pctx.strokeStyle = "#6FA8FF"; pctx.shadowColor = "#6FA8FF"; pctx.shadowBlur = 12;
+    pctx.beginPath(); pctx.arc(c, c, R * sc, 0, 2 * Math.PI); pctx.stroke(); pctx.shadowBlur = 0;
+    pctx.font = 'italic 26px "STIX Two Text", serif'; pctx.fillStyle = "#8A95AA";
+    pctx.textAlign = "right"; pctx.fillText(labelsUV[0], PW - 10, c - 10);
+    pctx.textAlign = "left"; pctx.fillText(labelsUV[1], c + 10, 28);
+    pctx.font = 'italic 24px "STIX Two Text", serif';
+    pctx.fillStyle = "rgba(220,226,236,.65)"; pctx.fillText("r", c + sc * 0.72 + 6, c - sc * 0.72 - 4);
+    pctx.fillStyle = "#6FA8FF"; pctx.fillText("R", c - R * sc * 0.72 - 22, c + R * sc * 0.72 + 22);
+    pctx.restore();
+  }
+
+  const tctx = $("trace").getContext("2d"), TWd = 540, THt = 168;
+  const TR_SEC = 14, trace = []; // [t, area, mode]
+  const MODE_COL = { vol: "#FFB547", lin: "#4FD1C5", ham: "#A99CFF", lag: "#5FD39A" };
+  function drawTrace(t) {
+    const ctx = tctx; ctx.clearRect(0, 0, TWd, THt);
+    const pl = 44, pr = 6, pt = 8, pb = 10, YMAX = 2;
+    const y = v => pt + (1 - Math.min(v, YMAX) / YMAX) * (THt - pt - pb);
+    const x = tt => pl + (1 - (t - tt) / TR_SEC) * (TWd - pl - pr);
+    ctx.font = '15px "IBM Plex Mono", monospace'; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (const v of [0, 0.5, 1, 1.5, 2]) {
+      ctx.strokeStyle = "rgba(44,54,73,.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pl, y(v)); ctx.lineTo(TWd - pr, y(v)); ctx.stroke();
+      ctx.fillStyle = "#5A6479"; ctx.fillText(v.toFixed(1), pl - 8, y(v));
+    }
+    ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
+    ctx.strokeStyle = "rgba(220,226,236,.75)"; ctx.beginPath(); ctx.moveTo(pl, y(1)); ctx.lineTo(TWd - pr, y(1)); ctx.stroke();
+    ctx.strokeStyle = "#6FA8FF"; ctx.beginPath(); ctx.moveTo(pl, y(R2)); ctx.lineTo(TWd - pr, y(R2)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth = 3; ctx.lineJoin = "round";
+    for (let k = 1; k < trace.length; k++) {
+      const a = trace[k - 1], b = trace[k];
+      ctx.strokeStyle = MODE_COL[b[2]]; ctx.beginPath(); ctx.moveTo(x(a[0]), y(a[1])); ctx.lineTo(x(b[0]), y(b[1])); ctx.stroke();
+    }
+    if (trace.length) { const e = trace[trace.length - 1]; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x(e[0]), y(e[1]), 4.5, 0, 2 * Math.PI); ctx.fill(); }
+    ctx.textAlign = "left"; ctx.font = '16px "IBM Plex Mono", monospace';
+    ctx.fillStyle = "rgba(220,226,236,.85)"; ctx.textBaseline = "top"; ctx.fillText("πr²  Gromov floor", pl + 6, y(1) + 4);
+    ctx.fillStyle = "#6FA8FF"; ctx.textBaseline = "top"; ctx.fillText("πR²  hole", pl + 6, y(R2) + 4);
+  }
+
+  // ---------- captions ----------
+  const CAPTIONS = {
+    vol: { e: "Scene 1 · not symplectic", t: "Volume-preserving squeeze", f: "(x₁, y₁, x₂, y₂) ↦ (a x₁, a y₁, x₂/a, y₂/a)", chips: [["4-volume kept", 1], ["not symplectic", 0]] },
+    lin: { e: "Scene 2", t: "Linear symplectic squeeze", f: "(x₁, y₁) ↦ (λ x₁, y₁/λ)", chips: [["4-volume kept", 1], ["symplectic", 1]] },
+    ham: { e: "Scene 3", t: "Nonlinear Hamiltonian flow", f: "kicks ∘ drifts ∘ U(2) twists ∘ squeeze", chips: [["4-volume kept", 1], ["symplectic", 1]] },
+    gromov: { e: "Gromov, 1985", t: "Non-squeezing theorem", f: "B⁴(r) ↪ B²(R) × ℝ²  ⟹  r ≤ R", chips: [] },
+    lag: { e: "Scene 4", t: "Cylinder over a Lagrangian plane", f: "(x₁, x₂) ↦ a (x₁, x₂),  (y₁, y₂) ↦ (y₁, y₂)/a", chips: [["ω = 0 on the base", 1], ["fits", 1]] },
+  };
+  let capShown = null;
+  function setCaption(id) {
+    if (id === capShown) return; capShown = id; if (!id) return;
+    const c = CAPTIONS[id];
+    $("cap-eyebrow").textContent = c.e; $("cap-title").textContent = c.t; $("cap-formula").textContent = c.f;
+    $("cap-chips").innerHTML = c.chips.map(([s, ok]) => `<span class="chip ${ok ? "yes" : "no"}">${ok ? "✓" : "✗"} ${s}</span>`).join("");
+  }
+
+  const op = (id, v) => { $(id).style.opacity = v.toFixed(3); };
+
+  // ---------- the timeline ----------
+  function state(t) {
+    const S = { mode: "vol", s: 0, lagTest: false, cylRot: 0, tau: t };
+    const b = beat;
+    if (t < b("title").start) {
+      S.mode = "ham"; S.s = 0.6 * sm(t, line("open", 3).start, line("open", 4).end) * (1 - sm(t, line("open", 5).start, b("open").end));
+    } else if (t < b("vol").start) {
+    } else if (t < b("lin").start) {
+      S.mode = "vol"; S.s = sm(t, line("vol", 1).start, line("vol", 3).end) * (1 - sm(t, line("vol", 4).end, b("vol").end - 0.1));
+    } else if (t < b("ham").start) {
+      S.mode = "lin"; S.s = sm(t, line("lin", 1).start, line("lin", 2).end) * (1 - sm(t, line("lin", 4).end, b("lin").end - 0.05));
+    } else if (t < b("lag").start) {
+      S.mode = "ham"; S.tau = t - b("ham").start; S.s = sm(t, line("ham", 1).start, line("ham", 3).end) * (1 - sm(t, line("gromov", beat("gromov").lines.length - 1).start, b("gromov").end - 0.05));
+    } else if (t < b("meaning").start) {
+      S.mode = "lag"; S.lagTest = true;
+      S.cylRot = sm(t, line("lag", 0).start, line("lag", 0).end);
+      S.s = sm(t, line("lag", 2).start, line("lag", 3).end) * (1 - sm(t, line("lag", 4).end, b("lag").end - 0.05));
+    } else {
+      S.mode = "ham"; S.tau = t - b("meaning").start;
+      S.cylRot = 1 - sm(t, b("meaning").start, line("meaning", 0).end);
+      S.lagTest = S.cylRot > 0.5;
+      S.s = 0.8 * sm(t, line("meaning", 1).start, line("meaning", 2).end) * (1 - sm(t, line("outro", 0).start, line("outro", 1).end));
+    }
+    return S;
+  }
+
+  function subtitleAt(t) {
+    const L = T.lines;
+    for (let i = 0; i < L.length; i++) {
+      const l = L[i], next = L[i + 1];
+      const until = next && next.start - l.end < 0.9 ? next.start : l.end + 0.35;
+      if (t >= l.start - 0.08 && t < until) return { text: l.show, a: sm(t, l.start - 0.08, l.start + 0.1) * (1 - sm(t, until - 0.12, until)) };
+    }
+    return { text: "", a: 0 };
+  }
+
+  const vtmp = new THREE.Vector3();
+  let lastT = -1;
+  window.renderAt = function (t) {
+    const b = beat;
+    const S = state(t);
+    computeMap(S.mode, S.s, S.tau, S.lagTest);
+
+    // envelopes
+    const cloudA = sm(t, 0.1, 2.6) * (1 - 0.6 * sm(t, b("title").start - 0.2, b("title").start + 0.6) * (1 - sm(t, b("phase").start, b("phase").start + 1.0)))
+                   * (1 - 0.55 * sm(t, b("outro").start + 0.3, b("outro").start + 1.8));
+    const c0 = line("open", 1).start;
+    const cylA = sm(t, c0 - 0.2, c0 + 1.4);
+    const drop = 6.5 * (1 - sm(t, c0 - 0.2, c0 + 2.4));
+    const labA = sm(t, line("phase", 1).start - 0.3, line("phase", 1).start + 0.8) * (1 - 0.35 * sm(t, b("vol").start, b("vol").start + 1));
+    const planeA = Math.max(
+      sm(t, line("phase", 2).start, line("phase", 2).start + 0.9) * (1 - sm(t, line("phase", 3).end, line("phase", 3).end + 1)),
+      sm(t, line("read", 2).start, line("read", 2).start + 0.9) * (1 - sm(t, line("read", 3).start, line("read", 3).start + 1)));
+    const colK = sm(t, line("read", 2).start - 0.3, line("read", 2).start + 1.2) * (1 - sm(t, b("outro").start, b("outro").start + 1.2));
+    const traceA = sm(t, b("vol").start - 0.2, b("vol").start + 1);
+    const legendA = sm(t, line("read", 0).start, line("read", 0).start + 0.8) * (1 - sm(t, b("vol").start, b("vol").start + 0.8));
+    const titleA = sm(t, b("title").start - 0.1, b("title").start + 0.9) * (1 - sm(t, b("phase").start + 0.2, b("phase").start + 1.2));
+    const eqA = sm(t, line("phase", 1).start - 0.2, line("phase", 1).start + 0.6) * (1 - sm(t, b("read").start - 0.4, b("read").start + 0.4));
+    const outroA = sm(t, b("outro").start + 0.6, b("outro").start + 2.0);
+
+    let cap = null, capA = 0;
+    for (const id of ["vol", "lin", "ham", "gromov", "lag"]) {
+      const a = sm(t, b(id).start, b(id).start + 0.8) * (1 - sm(t, b(id).end - 0.5, b(id).end));
+      if (a > 0.001) { cap = id; capA = a; }
+    }
+    setCaption(cap);
+
+    // 3D
+    for (let i = 0; i < N; i++) {
+      const j = 3 * i;
+      pos[j] = X1[i]; pos[j + 1] = X2[i]; pos[j + 2] = Y1[i];
+      const inside = IN[i] || cylA < 0.5;
+      if (inside) {
+        const f = clamp01(0.5 + 0.5 * Y2[i]);
+        col[j] = COOL[0] + (LAV[0] - COOL[0]) * f; col[j + 1] = COOL[1] + (LAV[1] - COOL[1]) * f; col[j + 2] = COOL[2] + (LAV[2] - COOL[2]) * f;
+      } else { col[j] = AMB[0]; col[j + 1] = AMB[1]; col[j + 2] = AMB[2]; }
+    }
+    posAttr.needsUpdate = true; colAttr.needsUpdate = true;
+    pmat.uniforms.uAlpha.value = GAIN * 0.6 * (140000 / N) * Math.pow(15 / PSIZE, 2) * cloudA;
+    for (const [m, o] of cylMats) m.opacity = o * cylA * (1 - 0.7 * outroA);
+    cyl.position.y = drop;
+    cylParent.rotation.x = S.cylRot * Math.PI / 2;
+    planeMat.opacity = 0.07 * planeA; planeEdgeMat.opacity = 0.5 * planeA;
+    axMat.opacity = 0.9 * labA * (1 - outroA);
+
+    const theta = 0.6 + 0.032 * t, phi = 1.16 + 0.1 * Math.sin(0.045 * t), dist = 7.0;
+    camera.position.set(dist * Math.sin(phi) * Math.cos(theta), dist * Math.cos(phi), dist * Math.sin(phi) * Math.sin(theta));
+    camera.lookAt(0, 0, 0);
+    camera.setViewOffset(W, H, 300 * colK, 0, W, H);
+    renderer.render(scene, camera);
+    for (const [el, p] of labels) {
+      vtmp.copy(p).project(camera);
+      el.style.left = ((vtmp.x + 1) / 2 * W) + "px"; el.style.top = ((1 - vtmp.y) / 2 * H) + "px"; el.style.opacity = (labA * (1 - outroA)).toFixed(3);
+    }
+
+    // shadow panel + readouts
+    const lagView = S.lagTest;
+    const UA = X1, VA = lagView ? X2 : Y1;
+    const area = shadowArea(UA, VA) * areaCal / Math.PI;
+    if (colK > 0.001) {
+      drawShadow(UA, VA, lagView ? ["x₁", "x₂"] : ["x₁", "y₁"]);
+      $("colTitle").innerHTML = lagView ? "Shadow on the <i>(x₁, x₂)</i> plane" : "Shadow on the <i>(x₁, y₁)</i> plane";
+      $("ro-area").textContent = area.toFixed(2) + " πr²";
+      $("ro-hole").textContent = R2.toFixed(2) + " πr²";
+    }
+    if (t < lastT) trace.length = 0;
+    lastT = t;
+    if (traceA > 0) { trace.push([t, area, S.mode]); while (trace.length && trace[0][0] < t - TR_SEC) trace.shift(); }
+    drawTrace(t);
+
+    op("col", colK); $("col").style.transform = `translateX(${(1 - colK) * 40}px)`;
+    op("trace", traceA); op("readouts", colK);
+    op("caption", capA); op("eqcard", eqA); op("titlecard", titleA); op("legend", legendA); op("outro", outroA);
+    $("eq-k1").style.opacity = $("eq-v1").style.opacity = 1;
+    const r3 = sm(t, line("phase", 2).start, line("phase", 2).start + 0.8);
+    $("eq-k3").style.opacity = $("eq-v3").style.opacity = r3.toFixed(3);
+
+    const sub = subtitleAt(t);
+    $("subText").textContent = sub.text; op("sub", sub.a);
+    const stageW = W - 640 * colK;
+    $("sub").style.width = stageW + "px";
+  };
+
+  window.filmReady = document.fonts.ready.then(() => { window.renderAt(0); return true; });
+  window.DURATION = T.duration;
+
+  // interactive preview when opened directly: ?t=seconds or play
+  const q = new URLSearchParams(location.search);
+  if (q.has("play")) {
+    let t0 = performance.now() - 1000 * (+q.get("t") || 0);
+    const loop = now => { window.renderAt((now - t0) / 1000 % T.duration); requestAnimationFrame(loop); };
+    window.filmReady.then(() => requestAnimationFrame(loop));
+  } else if (q.has("t")) window.filmReady.then(() => window.renderAt(+q.get("t")));
+})();
+</script>
+</body>
+</html>
