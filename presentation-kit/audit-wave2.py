@@ -55,6 +55,11 @@ def source_check():
         require(sha(HERE/'src'/name) == expected, 'Current committed snapshot differs from delivery: '+name)
     provenance = read(FINAL/'provenance.json')
     require(set(provenance['sources']) == set(BRANCHES), 'Kit provenance omits a repository')
+    recovery = read(LANE/'out/rhine-footage/recovery.json')
+    require(recovery['result'] == 'RECOVERED', 'Rhine recovery result missing')
+    for item in recovery['files']:
+        for path in (Path(item['source_path']), Path(item['kit_source_path']), FINAL/'rhine/live-media'/item['name']):
+            require(sha(path) == item['expected_sha256'], 'Recovered footage hash mismatch: '+str(path))
     for repo, source in provenance['sources'].items():
         for name, expected in source['files_sha256'].items():
             require(sha(LANE/repo/name) == expected, 'Kit stale relative to source: '+repo+'/'+name)
@@ -72,7 +77,7 @@ def source_check():
     soap_head = local_git('soap-films', 'rev-parse', 'HEAD')
     soap_remote = run(['git', '-c', 'http.version=HTTP/1.1', '-C', str(LANE/'soap-films'), 'ls-remote', '--heads', 'origin', 'refs/heads/'+branch]).split()[0]
     require(soap_head == soap_remote, 'Soap branch not pushed')
-    return {'engines_unchanged_from': 'f774ba5', 'engine_hashes': engines, 'notes': notes, 'manifest_sha256': sha(FINAL/'manifest.json'), 'soap_branch': branch, 'soap_head': soap_head, 'soap_remote': soap_remote}
+    return {'engines_unchanged_from': 'f774ba5', 'engine_hashes': engines, 'notes': notes, 'manifest_sha256': sha(FINAL/'manifest.json'), 'soap_branch': branch, 'soap_head': soap_head, 'soap_remote': soap_remote, 'footage_recovery': recovery}
 
 def browser_check():
     report = read(OUT/'evidence/playwright-results.json')
@@ -157,17 +162,38 @@ def gpu_check():
     result = read(OUT/'real-gpu/result.json')
     require(result['attempted'] is True and result['outcome'] in ('recorded', 'impossible'), 'GPU attempt has no terminal result')
     require(0 < result['duration_seconds'] <= 2700, 'GPU attempt missing duration or exceeded its 45-minute bound')
+    elapsed = (datetime.fromisoformat(result['finished_utc'].replace('Z', '+00:00')) - datetime.fromisoformat(result['started_utc'].replace('Z', '+00:00'))).total_seconds()
+    require(abs(elapsed-result['duration_seconds']) < .001, 'GPU duration differs from campaign timestamps')
     require(result['profile_isolated'] and result['owned_processes_closed'], 'GPU attempt isolation/cleanup not confirmed')
+    cleanup = json.loads(result['cleanup']['stdout'])
+    require(result['cleanup']['code'] == 0 and cleanup['remaining'] == cleanup['bridge_remaining'] == [], 'Owned GPU browser/bridge processes remain')
     require(result['evidence'] and all(Path(x).is_file() for x in result['evidence']), 'GPU raw evidence missing')
     if result['outcome'] == 'recorded':
         require('NVIDIA' in result['renderer'] and '2070' in result['renderer'], 'Real RTX renderer not established')
         require(result['raf_unthrottled'] is True and result['frame_timing'], 'Unthrottled frame timing not established')
+        probe = result['probe']
+        intervals = probe['deltas']
+        require(len(intervals) >= 120 and all(x > 0 for x in intervals), 'Idle rAF samples missing or invalid')
+        require(probe['visibility'] == 'visible' and sorted(intervals)[len(intervals)//2] < 40 and 1000*len(intervals)/sum(intervals) >= 30, 'Idle rAF is throttled or not visible')
         require(result['kit_manifest_sha256'] == sha(FINAL/'manifest.json'), 'GPU recording source is not the delivered kit')
         require(sha(result['recording']) == result['recording_sha256'], 'GPU recording missing or hash mismatch')
-        require(set(result['presentations_recorded']) == set(COUNTS), 'GPU recording omitted a presentation')
+        require(set(result['presentations_recorded_names']) == set(COUNTS), 'GPU recording omitted a presentation')
+        require({(x['app'], x['scene']) for x in result['scene_coverage']} == {(name, scene) for name, count in COUNTS.items() for scene in range(count)}, 'GPU recording omitted a scene')
+        repair = result['recording_postprocessing']
+        require(int(repair['probe']['streams'][0]['nb_read_frames']) == len(result['captured_frames']), 'GPU container lost captured frames')
+        require(abs(float(repair['probe']['format']['duration'])-result['expected_video_duration_seconds']) < .1, 'GPU recording truncates capture timeline')
+        for name in ('camel', 'rhine', 'soap'):
+            observed = result['application_gpu_verification'][name]
+            require(observed['passed'] and observed['contexts'] and all(c['drawCalls'] > 0 and 'NVIDIA' in c['renderer'] and '2070' in c['renderer'] for c in observed['contexts']), 'Actual application GPU renderer not established: '+name)
     else:
         require(result['reason'].strip() and result['observed_failures'], 'GPU impossibility lacks observed reason/evidence')
-    return result
+    keys = ('outcome', 'duration_seconds', 'renderer', 'recording', 'recording_sha256', 'recording_duration_seconds', 'recording_limitations', 'recording_postprocessing', 'reason', 'observed_failures')
+    summary = {key: result[key] for key in keys if key in result}
+    summary.update({'raw_result': str(OUT/'real-gpu/result.json'), 'raw_result_sha256': sha(OUT/'real-gpu/result.json')})
+    if result['outcome'] == 'recorded':
+        summary['calibration'] = {k: result['probe'][k] for k in ('samples','median','p95','hz','visibility')}
+        summary['scene_timing'] = [{k: v for k, v in scene.items() if k != 'raw_interval_ms'} for scene in result['frame_timing']['per_scene']]
+    return summary
 
 def delivery_check():
     build = read(OUT/'build.json')
@@ -205,6 +231,9 @@ if a.write_reports:
         status += ['- Watched-before finding: '+f['problem']+' Fix: '+f['fix']+' Evidence: `'+f['evidence']+'`.' for f in evidence['3']['findings']]
     if checks['4'] == 'PASS':
         g=evidence['4'];status += ['- Windows GPU attempt: '+g['outcome']+'. '+g.get('reason',g.get('renderer',''))+' Evidence: `out/wave2/real-gpu/result.json`.']
+    if checks['1'] == 'PASS':
+        recovery = evidence['1']['footage_recovery']
+        status += ['- Footage recovery: **'+recovery['result']+'** from `'+recovery['upstream_mac_path']+'`. Source paths and verified hashes: `out/rhine-footage/recovery.json`; local copies: `rhine-dimples/docs/live-media/`.']
     status += ['', '## Decisions and limits', '', '- Theorem, numerical model and rendering claims remain separate. Soap mesh topology is prescribed; two selected network outcomes do not measure success rates or prove global optimality.', '- Recovered Rhine footage remains private local media with pinned source hashes; it is not committed or published.', '- CPU 11 for heavy Linux work. Local checks only; no GitHub CI, deployment, public distribution or Ben browser profile use.', '- Phone and tablet checks are emulation. Physical devices, Ben’s Mac and narrated delivery remain untested.', '', '## Next', '', 'All Wave 2 delivery checks are complete.' if all(x=='PASS' for x in checks.values()) else 'Resolve the remaining failing checks in out/wave2/evidence/delivery-audit.json.']
     qa = ['# Wave 2 local QA report', '', '## Passed', '']
     qa += ['- '+TITLES[n]+'. Evidence: `'+REFS[n]+'`.' for n in range(1,6) if checks[str(n)]=='PASS']
@@ -216,7 +245,16 @@ if a.write_reports:
     if 'findings' in evidence['3']:
         qa += ['- '+f['problem']+' '+f['fix']+' Retained evidence: `'+f['evidence']+'`.' for f in evidence['3']['findings']]
     if checks['4']=='PASS':
-        g=evidence['4'];qa += ['', 'Real-GPU outcome: **'+g['outcome']+'**. '+g.get('reason',g.get('renderer',''))+' The attempt result includes duration, owned profile/process cleanup and raw evidence. A documented impossible attempt satisfies the attempt requirement; it does not count as a successful GPU rehearsal.']
+        g=evidence['4'];qa += ['', 'Real-GPU outcome: **'+g['outcome']+'**. '+g.get('reason',g.get('renderer',''))+' The attempt result includes duration, owned profile/process cleanup and raw evidence.']
+        if g['outcome'] == 'recorded':
+            c=g['calibration']
+            qa += [f"The complete attempt took {g['duration_seconds']} seconds including preparation. Visible idle calibration: {c['samples']} samples, median {c['median']:.2f} ms, p95 {c['p95']:.2f} ms, mean {c['hz']:.2f} Hz. This detects idle throttling; it is not an application throughput guarantee.", f"Recording: `{g['recording']}` ({g['recording_duration_seconds']} seconds), SHA-256 `{g['recording_sha256']}`."]
+            qa += ['GPU recording limit: '+str(x) for x in g['recording_limitations']]
+            qa += ['', 'Observed scene rAF rates during native capture (includes work and capture overhead):', '', '| App | Minimum mean Hz | Maximum mean Hz |', '| --- | ---: | ---: |']
+            for name in COUNTS:
+                rates=[x['mean_hz'] for x in g['scene_timing'] if x['app']==name]
+                qa += [f'| {name} | {min(rates):.2f} | {max(rates):.2f} |']
+            qa += ['', 'Preserved negative evidence: the first native launch timed out while inheriting console handles; its profile was closed. The original MP4 edit list truncated playback despite retaining all packets. A lossless local Matroska remux after Windows cleanup restored the captured timeline; original files and repair evidence remain under `out/wave2/real-gpu/`.']
     qa += ['', 'Wave 1 history is retained separately under `out/wave1/`; its three-app results do not establish this four-app delivery.', '', '## Untested', '', '- Physical phones, tablets and touch hardware: Chromium viewport/input emulation only.', '- Ben’s Mac, other browser engines and OS-specific file policies beyond the recorded environments.', '- Narrated performance: the recorded operator rehearsals are silent; the speaker guides supply the spoken explanation.', '- New formal proof replay, global optimization certification, solver convergence certification and rendered-pixel verification by theorem.', '- Public deployment and GitHub CI were not performed.']
     if checks['4']!='PASS' or evidence['4'].get('outcome')!='recorded':
         qa += ['- Real-GPU presentation playback/performance was not successfully validated; see the observed Windows-attempt result, not the software renderer result.']
