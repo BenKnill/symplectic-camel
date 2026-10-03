@@ -11,21 +11,23 @@
 
   function markMissing(v) {
     v.hidden = true; $(v.id + '-missing').hidden = false;
-    if (v.id === 'opening') { $('opening-illustration').hidden = false; $('opening-tools').hidden = false; }
+    if (v.id === 'opening') { $('opening-illustration').hidden = false; $('opening-tools').hidden = false; $('illustrationToggle').hidden = true; }
     $(v.id + '-status').textContent = 'Illustration only · original field footage not included';
     applySceneText();
   }
-  for (const v of vids) {
-    v.addEventListener('error', () => markMissing(v));
-    v.addEventListener('loadeddata', () => {
+  function markLoaded(v) {
       v.hidden = false; $(v.id + '-missing').hidden = true;
       if (v.id === 'opening') { $('opening-illustration').hidden = true; $('opening-tools').hidden = true; $('illustrationToggle').hidden = false; }
       sync();
       $(v.id + '-status').textContent = 'Ben’s boat footage · 1 June 2026 · normal speed · no synthetic imagery or interpolation.';
       applySceneText();
-    });
-    // Loading can fail before this script attaches listeners.
+  }
+  for (const v of vids) {
+    v.addEventListener('error', () => markMissing(v));
+    v.addEventListener('loadeddata', () => markLoaded(v));
+    // Cached media can succeed or fail before this script attaches listeners.
     if (v.error) markMissing(v);
+    else if (v.readyState >= 2) markLoaded(v);
   }
   function sync() {
     $('pause').textContent = playing ? 'Pause motion' : 'Resume motion';
@@ -64,7 +66,7 @@
   function select(n, options = {}) {
     const candidate = Number.isFinite(n) ? Math.trunc(n) : 0;
     beat = Math.max(0, Math.min(story.length - 1, candidate)); t = 0; last = performance.now();
-    if (!options.keepTour) auto = false;
+    if (!options.keepTour) { auto = false; playing = !matchMedia('(prefers-reduced-motion: reduce)').matches; }
     const b = story[beat]; views.forEach(v => { v.hidden = v.dataset.view !== b.view; });
     applySceneText();
     $('result').hidden = true; $('reveal-result').setAttribute('aria-expanded', 'false');

@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+const video=path.resolve(process.argv[2]);
+const directory=path.join(path.dirname(video),'frames');
+await fs.mkdir(directory,{recursive:true});
+const info=JSON.parse(execFileSync('ffprobe',['-v','error','-show_format','-show_streams','-of','json',video],{encoding:'utf8'}));
+const duration=Number(info.format.duration),interval=15,columns=4,rows=Math.ceil(Math.ceil(duration/interval)/columns);
+execFileSync('ffmpeg',['-y','-v','error','-threads','1','-filter_threads','1','-i',video,'-vf',`fps=1/${interval}:start_time=0`,'-threads','1',path.join(directory,'frame-%03d.png')],{stdio:'inherit'});
+execFileSync('ffmpeg',['-y','-v','error','-threads','1','-filter_threads','1','-i',video,'-vf',`fps=1/${interval}:start_time=0,scale=480:-1,tile=${columns}x${rows}`,'-frames:v','1','-threads','1',path.join(path.dirname(video),'contact-sheet.png')],{stdio:'inherit'});
+const frames=(await fs.readdir(directory)).filter(name=>name.endsWith('.png')).sort();
+const evidence={video,sha256:crypto.createHash('sha256').update(await fs.readFile(video)).digest('hex'),durationSeconds:duration,intervalSeconds:interval,frames:frames.map((name,index)=>({file:path.join(directory,name),nominalSeconds:index*interval})),probe:info};
+await fs.writeFile(path.join(path.dirname(video),'frames.json'),JSON.stringify(evidence,null,2)+'\n');
+console.log(JSON.stringify({video,durationSeconds:duration,frames:frames.length,contactSheet:path.join(path.dirname(video),'contact-sheet.png')}));

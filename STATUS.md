@@ -3,9 +3,9 @@
 Goal audit: work in progress. Initial inspection found clean reviewed source branches and no lane browser/recording evidence. No previous goal turn is available to classify; this turn has made progress by inspecting authoritative sources and starting implementation.
 
 1. FAIL — offline zip and SHA-256: build and fresh extraction pending. Evidence will be `../out/build.json` and `../out/kit.sha256`.
-2. FAIL — isolated browser suite: pending `unshare -rn` Playwright run against extracted kit. Evidence will be `../out/evidence/browser-qa.json`.
+2. FAIL — the initial `unshare -rn` browser run is preserved under `../out/qa-before/` and was intentionally superseded after the visual/reset fixes. Complete final run pending; output `../out/evidence/playwright-results.json`.
 3. FAIL — representative scene screenshots: pending; destination `../out/screenshots/`.
-4. FAIL — uninterrupted before/after rehearsals and watched-frame fixes: pending; destination `../out/rehearsals/`.
+4. FAIL — first uninterrupted recording completed and its regular-interval frames watched. Findings and fixes are recorded in `../out/reviews/first-rehearsal-review.json`; the after recording is running. Commands: `tests/rehearsal.mjs` and `tests/extract-frames.mjs`.
 5. PASS — recovered original footage: `sha256sum -c from-mac/live-media/SHA256SUMS` and full local decode verified; source paths and hashes in `../out/rhine-footage/recovery.json` and `rhine-dimples/FOOTAGE-MANIFEST.json`. The coordinator supplied the Mac transfer after the bounded search started; partial search evidence is preserved.
 6. FAIL — QA report with passed/failed/untested: final evidence pending. Real-GPU rendering/pacing and physical devices remain untested.
 7. FAIL — concise kit speaker notes and all three branch pushes: source adaptation underway; remote branch verification pending.
@@ -27,3 +27,10 @@ Baseline ZIP built successfully: `/home/bluestar/lanes/presentations/out/present
 ## Next
 
 Finish compact guided sources and notes, assemble and extract the kit, run offline browser checks, record/watch/fix/re-record the full sequence, then commit and push tested sources and audit all checks.
+
+## Rehearsal-fix checkpoint
+
+- Watched the before contact sheet and full-size frames; fixed clipped Camel trace/redundant counter, blank Rhine startup, below-fold navigation and oversized closing clip. Corrected operator interventions and increased reading time.
+- Strengthened reset coverage with real camera drag/zoom and a single playback toggle; preserved automatic rehearsal behavior.
+- Rebuilt final private ZIP under `unshare -rn` and extracted into `../out/kit-extracted-final/`. A second offline build is byte-identical (evidence `../out/evidence/reproducibility.json`).
+- Final ZIP SHA-256: `8840803dc3cdb89d8e9025349adbef68ed98d033b1cad52ad0c3df7e36e275c1`. Final browser checks, after-video inspection and final report generation remain.

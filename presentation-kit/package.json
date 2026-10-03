@@ -1,0 +1,12 @@
+{
+  "name": "three-presentations-offline-qa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test --config tests/playwright.config.mjs",
+    "rehearse": "node tests/rehearsal.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
