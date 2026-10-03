@@ -90,6 +90,17 @@ for(const presentation of presentations)test(`${presentation.name}: every scene,
           await page.screenshot({path:path.join(output,'screenshots',testInfo.project.name,'rhine-01-model.png'),fullPage:true});
           await page.locator('#illustrationToggle').click();
         }
+        if(presentation.name==='rhine'&&index===2){
+          await page.locator('#loopPair').click();await setRange(page,'#loopX',0);await setRange(page,'#loopRadius',3);
+          const loop=await page.evaluate(()=>window.FIGS.figLoop.getState());
+          expect(loop.pair).toBe(true);expect(loop.loop.x).toBe(0);expect(loop.loop.r).toBe(3);expect(Math.abs(loop.measured),'opposite signed circulation cancels').toBeLessThan(1e-6);
+          expect(loop.viewport.contour.left,'closed contour fits left edge').toBeGreaterThanOrEqual(6);
+          expect(loop.viewport.contour.top,'closed contour fits top edge').toBeGreaterThanOrEqual(6);
+          expect(loop.viewport.contour.right,'closed contour and handle fit right edge').toBeLessThanOrEqual(loop.viewport.width-6);
+          expect(loop.viewport.contour.bottom,'closed contour fits bottom edge').toBeLessThanOrEqual(loop.viewport.height-6);
+          await page.locator('#reveal-result').click();await page.screenshot({path:path.join(output,'screenshots',testInfo.project.name,'rhine-03-closed-contour.png'),fullPage:true});
+          evidence.closedContour={measured:loop.measured,viewport:loop.viewport};await page.locator(presentation.reset).click();await stable(page,presentation);
+        }
         if(presentation.name==='lattice'&&index===3){
           const home=await page.evaluate(()=>window.LatticeLive.toyState());
           for(let phase=1;phase<=4;phase++){await page.locator('#half-next').click();expect(await page.evaluate(()=>window.LatticeLive.getState().phase)).toBe(phase);await expect(page.locator('#occupancy')).toContainText('0 lost cells');}

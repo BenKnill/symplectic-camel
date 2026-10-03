@@ -2,7 +2,7 @@
   "purpose": "Exact source hashes identify the worktree content copied; git HEAD is context, not a claim that the worktree was clean.",
   "sources": {
     "symplectic-camel": {
-      "head_at_sync": "8bbf76df4f668fa3869ccbd0ae07f4ef7cb8a957",
+      "head_at_sync": "fa8204508a4a3f5563be789310266ade2b90c932",
       "files_sha256": {
         "docs/index.html": "13ceda2f30fb0a90dcd8d8fef0f6692d30401a7fb2be8c62e11af78116a6634e",
         "docs/presenter.js": "1199fb7da4db7b2e9fdaada2984a23c0f9b62d1fab8ab949d18b7b6bf5310326",
@@ -13,7 +13,7 @@
       }
     },
     "lattice-echo": {
-      "head_at_sync": "3f023d4be0ddc0f2b725216755a5361a5eaac20d",
+      "head_at_sync": "08e0c1de50d9435758e52a5a82ecf9a4434fed9e",
       "files_sha256": {
         "docs/live.html": "1fd88cbdc855b609a10ff260e552927724d203ac66d8452c800ace0762474370",
         "docs/live.js": "fb9444e37805939a8730a5ce904703dfc3f5a2c73253e73765e8c8d7ce1f5e97",
@@ -24,7 +24,7 @@
       }
     },
     "rhine-dimples": {
-      "head_at_sync": "21a2be7a7bd331864f98646a447c6acab0472505",
+      "head_at_sync": "b74c39cdf0aaaebb41518740def85e5af5d5c653",
       "files_sha256": {
         "docs/live.html": "74445555245d3210491daccd512235c8d291dc6a0301dc18b2dfa8f7057a2184",
         "docs/live.js": "23075e53c95f74ca654007266d91c365615f4cc98da216e8660f4ee58b35593a",
@@ -32,7 +32,7 @@
         "docs/live-story.js": "c220ea292a82961fa619ed7c54f0b1d478c7c6652d1bca0e83cd1df9026b0d49",
         "docs/vortex.js": "c255ecbc4b2cc854ee3e6ae65c83b8bb9aac1da99084dfe95cdec33c9608dccf",
         "docs/water.js": "fe2d60bdbfda4a36ed2b238783a2f9c72e3b9fa78559cd708fe5c23ca9c8cb2a",
-        "docs/figs.js": "2a10734c801e339d7fb4cef54b334f7727b58aa4a8544171245e823a2ccbc5f8",
+        "docs/figs.js": "c9b39bca1db25486a01c53f98c00b2e2d90b554c237b279f8142d6daa163208a",
         "docs/live-guide.html": "a2c79abaa1016435e768f129a804acd477d3074dbfb99f102bcb94b783a76f20"
       }
     }

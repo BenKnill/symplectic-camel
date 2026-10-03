@@ -110,7 +110,9 @@
     const P = []; function seedParticles() { seed = 731; P.length = 0; for (let i = 0; i < 520; i++) P.push([random() * 14 - 7, random() * 8 - 4, random() * 3]); }
     seedParticles(); let wheel = 0, view = null, measured = 0;
     const fig = makeFig(cv, (c, W, H, t, dt) => {
-      const S = W / 13, cx = W / 2, cy = H / 2, sx = x => cx + x * S, sy = y => cy - y * S; view = { S, cx, cy };
+      // The live panel can be wide and shallow. Fit the demonstrated closed contour
+      // vertically as well as horizontally; article and film framing is unchanged.
+      const S = window.LIVE_MODE ? Math.min(W / 13, H / 10) : W / 13, cx = W / 2, cy = H / 2, sx = x => cx + x * S, sy = y => cy - y * S; view = { S, cx, cy, W, H };
       const hw = W / 2 / S, hh = H / 2 / S;
       // streaks
       c.lineCap = "round";
@@ -153,7 +155,11 @@
     if (window.LIVE_MODE) {
       fig.onReset = () => { loop.x = -0.5; loop.y = 0.3; loop.r = 1.6; drag = null; wheel = 0; seedParticles(); setPair(false); };
       fig.setLoop = values => { Object.assign(loop, values); loop.r = Math.max(0.25, Math.min(4.5, loop.r)); fig.redraw(); };
-      fig.getState = () => ({ loop: { ...loop }, pair, measured, wheel, particles: P.map(p => p.slice()) });
+      fig.getState = () => ({ loop: { ...loop }, pair, measured, wheel, particles: P.map(p => p.slice()),
+        viewport: view && { width: view.W, height: view.H, scale: view.S, contour: {
+          left: view.cx + (loop.x - loop.r) * view.S, right: view.cx + (loop.x + loop.r) * view.S,
+          top: view.cy - (loop.y + loop.r) * view.S, bottom: view.cy - (loop.y - loop.r) * view.S
+        } } });
       fig.onReset();
     }
   }

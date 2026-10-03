@@ -9,6 +9,10 @@ Open `docs/index.html` in a browser. It needs no build step. Three.js r128 is in
 
 ## Live rehearsal edition
 
-Open `docs/index.html?present=1` (through a local HTTP server if your browser needs it). Five guided beats take about 3–4 minutes, with prediction, next/back, deterministic scene reset, speaker notes, keyboard shortcuts and optional fullscreen. `docs/live-guide.html` records the claim/measurement boundaries.
+Open `docs/index.html?present=1` (through a local HTTP server if your browser needs it). Five guided beats take about two minutes, with prediction, next/back, deterministic scene reset, speaker notes, keyboard shortcuts and optional fullscreen. `docs/live-guide.html` records the claim/measurement boundaries.
 
 Run `node tests/live-models.mjs` and `node tests/live-controls.mjs`. The controller test uses a minimal DOM harness, not a browser rendering check. The sampled shadow does not certify the theorem; linear containment badges use the analytic map.
+
+## Offline three-presentation kit
+
+`presentation-kit/` contains the source snapshot, deterministic builder, local Playwright suite and rehearsal tools for Camel, Chaos backwards and Rhine. See `presentation-kit/README.md` for the verified private-media restore and build commands; `STATUS.md` and `QA-REPORT.md` record delivery evidence and its limits. The consumer ZIP opens directly from a freshly extracted folder with networking disabled.

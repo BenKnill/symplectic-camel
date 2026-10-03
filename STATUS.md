@@ -34,3 +34,7 @@ Finish compact guided sources and notes, assemble and extract the kit, run offli
 - Strengthened reset coverage with real camera drag/zoom and a single playback toggle; preserved automatic rehearsal behavior.
 - Rebuilt final private ZIP under `unshare -rn` and extracted into `../out/kit-extracted-final/`. A second offline build is byte-identical (evidence `../out/evidence/reproducibility.json`).
 - Final ZIP SHA-256: `8840803dc3cdb89d8e9025349adbef68ed98d033b1cad52ad0c3df7e36e275c1`. Final browser checks, after-video inspection and final report generation remain.
+
+## Closed-contour review checkpoint
+
+The intermediate after recording exposed a clipped measuring contour. Corrected live view scaling and tested full contour visibility at all three sizes, preserving the numerical integral and original article/film views. Evidence: `../out/rhine-footage/loop-framing-check.json`. The final uninterrupted rehearsal and full suite are being repeated; intermediate evidence is retained under `../out/rehearsals/after-v1/` and `../out/qa-final-v1/`. Current ZIP SHA-256: `36ef162988590e84d87ee833c79add2b83773071222584b8a74002743244e7ba`.
