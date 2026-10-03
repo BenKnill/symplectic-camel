@@ -20,3 +20,14 @@ body.presenting summary:focus-visible{outline:2px solid #6fa8ff;outline-offset:3
 }
 @media(max-width:440px){body.presenting .row2{grid-template-columns:1fr}body.presenting #shadowB{max-width:200px;margin:auto}body.presenting #gl{height:330px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+/* Rehearsal review: keep the measurements visible beside the large projection.
+   On shorter desktop windows the document scrolls, rather than cropping the trace. */
+@media(min-width:921px){
+ body.presenting .main{min-height:650px}
+ body.presenting .side{overflow:visible}
+ body.presenting #shadowA{width:min(100%,260px)}
+ body.presenting #trace{height:80px}
+ body.presenting .readouts{margin:0}
+}
+/* The guided beat count already identifies our place in the explanation. */
+body.presenting .caption .eyebrow{display:none}

@@ -664,7 +664,7 @@
       Object.assign(orbit,{theta:.72,phi:1.12,dist:7.4,dragging:false,idle:0});
     },
     pause: () => setPlaying(false),
-    getState: () => ({mode:state.mode,s:state.s,R:state.R,playing:state.playing,t:state.t})
+    getState: () => ({mode:state.mode,s:state.s,R:state.R,playing:state.playing,t:state.t,camera:{theta:orbit.theta,phi:orbit.phi,dist:orbit.dist}})
   };
   applyMode(state.mode);
   setPlaying(state.playing); setTour(state.tour);
