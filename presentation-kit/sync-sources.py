@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh committed kit source from the three reviewed sibling checkouts."""
+"""Refresh committed kit source from the four sibling presentation checkouts."""
 from pathlib import Path
 import hashlib, json, re, shutil, subprocess
 
@@ -9,6 +9,7 @@ SOURCES = {
     'camel': ('symplectic-camel', ['index.html', 'presenter.js', 'presenter.css', 'live-guide.html', 'vendor/three-r128.min.js', 'vendor/THREE-LICENSE.txt']),
     'lattice': ('lattice-echo', ['live.html', 'live.js', 'live.css', 'lattice.js', 'camel.js', 'live-guide.html']),
     'rhine': ('rhine-dimples', ['live.html', 'live.js', 'live.css', 'live-story.js', 'vortex.js', 'water.js', 'figs.js', 'live-guide.html']),
+    'soap': ('soap-films', ['live.html', 'live.css', 'live.js', 'live-model.js', 'live-guide.html', 'steiner.js', 'surface.js', 'film3d.js', 'filmcolor.js']),
 }
 manifest = {'purpose': 'Exact source hashes identify the worktree content copied; git HEAD is context, not a claim that the worktree was clean.', 'sources': {}}
 for slug, (repo, names) in SOURCES.items():
@@ -40,7 +41,7 @@ for slug, (repo, names) in SOURCES.items():
             if slug != 'camel':
                 html = html.replace('href="../LIVE-SOURCE-CHECKPOINT.md"', 'href="../provenance.json"')
             if output_name == 'index.html':
-                html = html.replace('<header>', '<header><a href="../index.html" class="kit-home">All three presentations</a>', 1)
+                html = html.replace('<header>', '<header><a href="../index.html" class="kit-home">All four presentations</a>', 1)
             target.write_text(html)
         else:
             target.write_bytes(raw)

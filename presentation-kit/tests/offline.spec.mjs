@@ -4,6 +4,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { kit,output,presentations,localURL,insideKit,sceneIndex,ready,state,observeErrors,setRange,instrumentWebGL } from './common.mjs';
+import { canonicalActions, performActions } from './rehearsal-actions.mjs';
 
 test.beforeAll(async()=>{
   const external=Object.values(os.networkInterfaces()).flat().filter(address=>!address.internal);
@@ -39,6 +40,56 @@ async function navigate(page,presentation,direction,method){
   else await page.locator(selector).click();
   await stable(page,presentation);
 }
+async function inspectSoapNetwork(page,dip){
+  const geometry=await page.evaluate(dip=>{
+    const network=window.SoapModels.network(dip);
+    return {pins:network.pins,vertices:[...network.pins,...network.jx],edges:network.edges,reportedLength:network.length(),competitor:window.SoapModels.referenceEdges};
+  },dip);
+  const length=edges=>edges.reduce((total,[a,b])=>total+Math.hypot(geometry.vertices[a].x-geometry.vertices[b].x,geometry.vertices[a].y-geometry.vertices[b].y),0);
+  const reached=new Set([0]);
+  for(let changed=true;changed;){changed=false;for(const [a,b] of geometry.edges)if(reached.has(a)!==reached.has(b)){reached.add(a);reached.add(b);changed=true;}}
+  expect(geometry.pins).toHaveLength(6);
+  expect(reached.size,'the demonstrated film connects every terminal and junction').toBe(geometry.vertices.length);
+  expect(geometry.edges.length,'the displayed network is a tree').toBe(geometry.vertices.length-1);
+  const competitorReached=new Set([0]);
+  for(let changed=true;changed;){changed=false;for(const [a,b] of geometry.competitor)if(competitorReached.has(a)!==competitorReached.has(b)){competitorReached.add(a);competitorReached.add(b);changed=true;}}
+  expect(competitorReached.size,'the five-side competitor independently connects all six pins').toBe(geometry.pins.length);
+  expect(geometry.competitor).toHaveLength(geometry.pins.length-1);
+  const measuredLength=length(geometry.edges),competitorLength=length(geometry.competitor);
+  expect(measuredLength,'recompute actual segment lengths independently').toBeCloseTo(geometry.reportedLength,10);
+  expect(competitorLength,'explicit five unit-length hexagon sides').toBeCloseTo(5,10);
+  if(dip===0)expect(measuredLength,'a connected competitor is strictly shorter than the first local outcome').toBeGreaterThan(competitorLength);
+  else expect(measuredLength,'the second chosen start reaches the five-unit network').toBeCloseTo(competitorLength,7);
+  return {dip,vertices:geometry.vertices.length,edges:geometry.edges.length,connected:true,measuredLength,competitorLength};
+}
+async function distinctCanvasColors(page,selector){
+  return page.locator(selector).evaluate(canvas=>{const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;const values=new Set();for(let i=0;i<pixels.length;i+=4)values.add(`${pixels[i]},${pixels[i+1]},${pixels[i+2]}`);return values.size;});
+}
+async function inspectSoapFilm(page,kind){
+  const result=await page.evaluate(kind=>{
+    const {model,initialArea,steps,lastMove}=window.SoapModels.film(kind);
+    return {kind,area:model.area(),initialArea,steps,lastMove,vertices:model.V.length,triangles:model.tris.length,tripleEdges:model.tripleEdges.length,junctions:model.junctions.length};
+  },kind);
+  expect(result.area).toBeGreaterThan(0);
+  expect(result.area,'relaxed numerical film has lower area than its starting mesh').toBeLessThan(result.initialArea);
+  expect(result.steps).toBeGreaterThan(0);expect(Number.isFinite(result.lastMove)).toBe(true);
+  expect(result.vertices).toBeGreaterThan(0);expect(result.triangles).toBeGreaterThan(0);
+  expect(result.tripleEdges).toBeGreaterThan(0);expect(result.junctions).toBeGreaterThan(0);
+  return result;
+}
+async function soapPixels(page,selector,kind){
+  return page.locator(selector).evaluate((canvas,kind)=>{
+    let pixels;
+    if(kind==='webgl2'){
+      const gl=canvas.getContext(kind);pixels=new Uint8Array(canvas.width*canvas.height*4);
+      gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+      if(gl.getError()!==gl.NO_ERROR)throw new Error('WebGL pixel read failed');
+    }else pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    const colors=new Set();let hash=2166136261;
+    for(let i=0;i<pixels.length;i+=4){colors.add((pixels[i]<<16)|(pixels[i+1]<<8)|pixels[i+2]);hash=Math.imul(hash^pixels[i],16777619);hash=Math.imul(hash^pixels[i+1],16777619);hash=Math.imul(hash^pixels[i+2],16777619);}
+    return {colors:colors.size,digest:(hash>>>0).toString(16)};
+  },kind);
+}
 async function changeSceneState(page,presentation,index){
   if(presentation.name==='camel'){
     const camera=await page.evaluate(()=>window.CamelLive.getState().camera);
@@ -56,6 +107,14 @@ async function changeSceneState(page,presentation,index){
     if(index===4){await setRange(page,'#light',5);await setRange(page,'#light',95);}
     if(await page.locator('#reveal-result').count())await page.locator('#reveal-result').click();
     await page.locator('#pause').click();await page.waitForTimeout(100);
+  }else if(presentation.name==='soap'){
+    await performActions(page,canonicalActions('soap',index));await stable(page,presentation);
+    if(index>=2){
+      const camera=(await state(page,'soap')).camera;
+      await page.locator('#film').scrollIntoViewIfNeeded();const box=await page.locator('#film').boundingBox();
+      await page.mouse.move(box.x+box.width*.6,box.y+box.height*.5);await page.mouse.down();await page.mouse.move(box.x+box.width*.6+25,box.y+box.height*.5+20,{steps:3});await page.mouse.up();await page.mouse.wheel(0,120);
+      await expect.poll(async()=>(await state(page,'soap')).camera).not.toEqual(camera);
+    }
   }
 }
 
@@ -111,6 +170,72 @@ for(const presentation of presentations)test(`${presentation.name}: every scene,
           for(let phase=3;phase>=0;phase--){await page.locator('#half-prev').click();expect(await page.evaluate(()=>window.LatticeLive.getState().phase)).toBe(phase);}
           evidence.toyRoundTrip={phases:5,allIdentitiesReturned:true,previousSteps:true};
         }
+        if(presentation.name==='soap'){
+          const before=await state(page,'soap');
+          expect(before.ready).toBe(true);expect(before.error).toBeNull();expect(before.playing).toBe(false);
+          const selector=index<2?'#network':'#film',renderer=index<2?'canvas2d':'webgl2';
+          const pixelsBefore=await soapPixels(page,selector,renderer);
+          const actions=canonicalActions('soap',index);let intermediate=null;
+          if(index===1||index===2){
+            await performActions(page,actions.slice(0,-1));await stable(page,presentation);
+            intermediate={state:await state(page,'soap'),pixels:await soapPixels(page,selector,renderer)};
+            if(index===1){
+              expect(intermediate.state.comparison,'show shorter competitor before changing dip').toBe(true);
+              expect(intermediate.state.dip).toBe(0);expect(intermediate.state.model.length).toBeGreaterThan(intermediate.state.model.referenceLength);
+              expect(intermediate.pixels.digest,'competitor overlay is actually drawn').not.toBe(pixelsBefore.digest);
+              await expect(page.locator('#metric-detail')).toContainText('5.000');
+            }else{
+              expect(intermediate.state.camera,'actual pointer drag rotates the camera').not.toEqual(before.camera);
+              expect(intermediate.state.highlighted).toBe(false);
+            }
+            await performActions(page,actions.slice(-1));
+          }else await performActions(page,actions);
+          await stable(page,presentation);
+          const after=await state(page,'soap'),pixelsAfter=await soapPixels(page,selector,renderer);
+          expect(after,'operator input changes the actual exposed model or display state').not.toEqual(before);
+          expect(pixelsAfter.colors,'Soap canvas contains actual nonuniform rendered pixels').toBeGreaterThan(10);
+          expect(pixelsAfter.digest,'canonical intervention visibly changes the canvas').not.toBe(pixelsBefore.digest);
+          const result={scene:index,before,intermediate,after,pixelsBefore,pixelsAfter};
+          if(index<2){
+            expect(after.revealed).toBe(true);await expect(page.locator('#metric')).toBeVisible();
+            result.network=await inspectSoapNetwork(page,after.dip);
+            expect(after.model.length).toBeCloseTo(result.network.measuredLength,7);
+            await expect(page.locator('#metric-value')).toHaveText(result.network.measuredLength.toFixed(3));
+            if(index===0){expect(after.seed).toBe(1);expect(after.model.junctions).toHaveLength(4);}
+            else {
+              expect(after.seed).toBe(4);expect(after.comparison,'new dip clears the old overlay so two gaps do not look like a hexagon').toBe(false);expect(after.model.junctions).toHaveLength(0);
+              expect(after.model.pins,'both dips keep exactly the same six pins').toEqual(before.model.pins);
+              expect(after.model.length,'the second selected outcome is shorter').toBeLessThan(before.model.length);
+              await expect(page.locator('#soap-compare')).toHaveAttribute('aria-pressed','false');
+              await expect(page.locator('#metric-detail')).toContainText('5.196');
+            }
+          }else{
+            result.film=await inspectSoapFilm(page,after.model.frame);
+            expect(after.model.type).toBe('surface');expect(after.model.frame).toBe('tetrahedron');
+            expect(after.model.area).toBeCloseTo(result.film.area,7);
+            expect(after.model.triangles).toBe(result.film.triangles);
+            expect(after.model.tripleEdges).toBe(result.film.tripleEdges);
+            expect(after.model.junctions).toBe(result.film.junctions);
+            expect(after.highlighted).toBe(true);
+            if(index===2){await expect(page.locator('#laws')).toBeVisible();expect(pixelsAfter.digest,'junction marks change rendered pixels after the rotation').not.toBe(intermediate.pixels.digest);}
+            else {
+              expect(before.model.frame).toBe('cube');expect(after.model.digest).not.toBe(before.model.digest);
+              expect(after.model.triangles).not.toBe(before.model.triangles);await expect(page.locator('#theorem')).toBeVisible();
+            }
+          }
+          await assertLayout(page);await page.evaluate(()=>scrollTo(0,0));
+          result.screenshot=path.join(output,'screenshots',testInfo.project.name,`soap-${String(index+1).padStart(2,'0')}-reveal.png`);
+          await page.screenshot({path:result.screenshot,fullPage:true});
+          if(index===1){
+            await page.locator('#soap-compare').click();await stable(page,presentation);
+            expect((await state(page,'soap')).comparison).toBe(true);
+            await expect(page.locator('#metric-detail'),'deliberately comparing equal networks must say equal').toContainText(/equal/i);
+            result.equalComparison={state:await state(page,'soap'),detail:await page.locator('#metric-detail').innerText()};
+          }
+          evidence.soapResults??=[];evidence.soapResults.push(result);
+          await page.locator(presentation.reset).click();await stable(page,presentation);
+          expect(await state(page,'soap'),'canonical intervention reset restores complete state').toEqual(before);
+        }
       }
       if(index<presentation.count-1)await navigate(page,presentation,1,method);
     }
@@ -143,14 +268,27 @@ for(const presentation of presentations)test(`${presentation.name}: every scene,
   const original=page.viewportSize();
   if(presentation.name==='rhine'){await page.evaluate(()=>document.activeElement?.blur());await page.keyboard.press('Home');await stable(page,presentation);await page.locator('#illustrationToggle').click();await expect(page.locator('#opening-water')).toBeVisible();}
   evidence.resize=[];
-  for(const viewport of [{width:800,height:600},{width:390,height:844},original]){await page.setViewportSize(viewport);await page.waitForTimeout(150);const resized=await assertLayout(page);expect(resized.canvases.length,'resize must exercise a visible renderer').toBeGreaterThan(0);evidence.resize.push({viewport,layout:resized});}
+  for(const target of presentation.name==='soap'?[0,3]:[null]){
+    if(target!==null){
+      while(await sceneIndex(page,presentation.name)!==target){const current=await sceneIndex(page,presentation.name);await navigate(page,presentation,current<target?1:-1,'mouse');}
+    }
+    for(const viewport of [{width:800,height:600},{width:390,height:844},original]){
+      await page.setViewportSize(viewport);await page.waitForTimeout(150);
+      const resized=await assertLayout(page);expect(resized.canvases.length,'resize must exercise a visible renderer').toBeGreaterThan(0);
+      if(presentation.name==='soap'){
+        const scale=await page.evaluate(()=>Math.min(devicePixelRatio,2));
+        for(const canvas of resized.canvases){expect(Math.abs(canvas.width-canvas.displayWidth*scale),'Soap backing width follows CSS resize').toBeLessThanOrEqual(2);expect(Math.abs(canvas.height-canvas.displayHeight*scale),'Soap backing height follows CSS resize').toBeLessThanOrEqual(2);}
+      }
+      evidence.resize.push({scene:await sceneIndex(page,presentation.name),viewport,layout:resized});
+    }
+  }
   evidence.webgl=await page.evaluate(()=>window.__webgl);
   if(presentation.name!=='lattice'){
     expect(evidence.webgl.length,'WebGL context exists').toBeGreaterThan(0);
     expect(evidence.webgl.some(context=>context.drawCalls>0),'WebGL submitted rendering commands').toBe(true);
     expect(evidence.webgl.some(context=>/SwiftShader/.test(context.renderer)),'recorded software renderer must match documented environment').toBe(true);
   }else if(presentation.name==='lattice'){
-    const colorCount=await page.locator('#exact').evaluate(canvas=>{const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;const values=new Set();for(let i=0;i<pixels.length;i+=4)values.add(`${pixels[i]},${pixels[i+1]},${pixels[i+2]}`);return values.size;});
+    const colorCount=await distinctCanvasColors(page,'#exact');
     expect(colorCount,'lattice rendered image contains actual nonuniform pixels').toBeGreaterThan(10);evidence.canvasDistinctColors=colorCount;
   }
   Object.assign(evidence,observed);await fs.mkdir(path.join(output,'evidence'),{recursive:true});await fs.writeFile(path.join(output,'evidence',`${testInfo.project.name}-${presentation.name}.json`),JSON.stringify(evidence,null,2)+'\n');

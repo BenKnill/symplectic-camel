@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Soap Computer · live</title><link rel="stylesheet" href="live.css"></head>
+<body data-scene-index="0" data-scene-count="4">
+<header><a href="../index.html" class="kit-home">All four presentations</a><a href="../rhine/index.html">← The river</a><span>BEN KNILL · LIVE EXPLANATION</span><a href="live-guide.html">Speaker notes</a></header>
+<main>
+<div class="scene-top"><p class="eyebrow" id="scene-label">01 / 04 · PREDICT</p><span class="tag">THE SOAP COMPUTER</span></div>
+<h1 id="scene-title">Can soap always find the shortest route?</h1>
+<p class="lede" id="scene-prompt">Six pins. A film between two plates. Predict: will one dip find the shortest connected network?</p>
+<nav class="scene-controls" aria-label="Presentation scenes"><button id="scene-prev" data-action="back">← Back</button><output id="scene-count" aria-live="polite">1 / 4</output><button id="scene-next" data-action="next">Intervene →</button><button id="scene-reset" data-action="reset">Reset scene</button></nav>
+<div class="stage">
+<section class="visual" aria-label="Soap-film illustration">
+<div class="canvas-wrap" id="network-panel"><canvas id="network" aria-label="Six-pin soap-film network viewed from above"></canvas><div class="plot-label">VIEW FROM ABOVE · PIN SPACING = 1</div></div>
+<div class="canvas-wrap" id="film-panel" hidden><canvas id="film" aria-label="Numerical soap film on a wire frame; drag to rotate, wheel to zoom"></canvas><div class="plot-label" id="frame-label">TETRAHEDRON FRAME · DRAG TO ROTATE</div></div>
+<p class="visual-caption" id="visual-caption">The pins stay fixed. Free junctions can move and connections can change.</p>
+</section>
+<aside class="story">
+<p class="eyebrow" id="claim-kind">NUMERICAL ILLUSTRATION</p><h2 id="side-title">Make your prediction.</h2>
+<p id="side-copy">Surface tension pulls a film toward less area. Between parallel plates, that means a shorter network.</p>
+<div class="metric" id="metric" hidden><span id="metric-label">This dip’s length</span><strong id="metric-value"></strong><small id="metric-detail"></small></div>
+<div class="actions"><button id="soap-reveal">Reveal one dip</button><button id="soap-dip" hidden>Try a second dip</button><button id="soap-compare" hidden aria-pressed="false">Show a shorter competitor</button><button id="soap-highlight" hidden aria-pressed="false">Reveal the junctions</button><button id="soap-frame" hidden>Try a tetrahedron</button></div>
+<p class="consequence" id="consequence" aria-live="polite">Pause for the audience before revealing a result.</p>
+<div class="laws" id="laws" hidden><p><strong>Y · 120°</strong><span>Three sheets meet along a line.</span></p><p><strong>T · ≈109.47°</strong><span>Four triple lines meet at a point.</span></p></div>
+<div class="theorem" id="theorem" hidden><p><b>Theorem · Jean Taylor, 1976</b></p><p>For ideal area-minimizing films in 3D, interior points have only three local types: a smooth sheet, a Y junction or a T junction.</p><p>These are local rules. They do not make every dipped film a global optimizer.</p></div>
+</aside>
+</div>
+<p class="boundary" id="boundary">This is the repository’s numerical network model, not a recording of real soap.</p>
+<details id="narration"><summary>Presenter cues / N</summary><p id="cue"></p><p>Sources: Jean E. Taylor, <i>The structure of singularities in soap-bubble-like and soap-film-like minimal surfaces</i>, Annals of Mathematics 103 (1976), 489–539, DOI 10.2307/1970949. Dutta, Khastgir &amp; Roy, <i>Steiner trees and spanning trees in six-pin soap films</i>, American Journal of Physics 78 (2010), 215–221. Source details are in the speaker notes.</p></details>
+<footer><span>← → scenes · R reset scene · N cues · F fullscreen</span><button id="full">Fullscreen</button></footer>
+</main>
+<script src="filmcolor.js"></script><script src="steiner.js"></script><script src="surface.js"></script><script src="film3d.js"></script><script src="live-model.js"></script><script src="live.js"></script>
+</body></html>

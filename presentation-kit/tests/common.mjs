@@ -1,27 +1,29 @@
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 export const lane = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-export const kit = path.resolve(process.env.KIT_DIR || path.join(lane, 'out/kit-extracted-final'));
-export const output = path.resolve(process.env.QA_OUTPUT || path.join(lane, 'out'));
+export const kit = path.resolve(process.env.KIT_DIR || path.join(lane, 'out/wave2/kit-extracted-final'));
+export const output = path.resolve(process.env.QA_OUTPUT || path.join(lane, 'out/wave2'));
 export const chromiumPath = process.env.CHROMIUM_PATH || '/home/bluestar/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome';
 export const launchOptions = { executablePath: chromiumPath, args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-dev-shm-usage'] };
 export const presentations = [
   { name:'camel', file:'camel/index.html?present=1', count:5, next:'#p-next', back:'#p-prev', reset:'#p-reset', title:'#beat-title' },
   { name:'lattice', file:'lattice/index.html', count:4, next:'#scene-next', back:'#scene-prev', reset:'#scene-reset', title:'#scene-title' },
   { name:'rhine', file:'rhine/index.html', count:6, next:'#next', back:'#prev', reset:'#restart', title:'#title' },
+  { name:'soap', file:'soap/index.html', count:4, next:'#scene-next', back:'#scene-prev', reset:'#scene-reset', title:'#scene-title' },
 ];
 export const localURL = (file = 'index.html') => pathToFileURL(kit + '/').href + file;
 export function insideKit(url) {const relative=path.relative(kit,fileURLToPath(url));return relative!== '..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative);}
 export async function sceneIndex(page, name) {
-  return page.evaluate(name => name==='camel' ? window.CamelPresenter.getBeat() : name==='lattice' ? window.LatticeLive.getState().scene : window.RhineLive.getState().beat, name);
+  return page.evaluate(name => name==='camel' ? window.CamelPresenter.getBeat() : name==='lattice' ? window.LatticeLive.getState().scene : name==='soap' ? window.SoapLive.getState().scene : window.RhineLive.getState().beat, name);
 }
 export async function ready(page, name) {
-  await page.waitForFunction(name => name==='camel' ? window.CamelPresenter && window.CamelLive : name==='lattice' ? window.LatticeLive?.getState().ready && window.LatticeLive.getState().dir===0 : window.RhineLive && window.FIGS, name);
+  await page.waitForFunction(name => name==='camel' ? window.CamelPresenter && window.CamelLive : name==='lattice' ? window.LatticeLive?.getState().ready && window.LatticeLive.getState().dir===0 : name==='soap' ? window.SoapLive?.getState().ready : window.RhineLive && window.FIGS, name);
 }
 export async function state(page, name) {
   return page.evaluate(name => {
     if(name==='camel') return {beat:window.CamelPresenter.getBeat(),...window.CamelLive.getState()};
     if(name==='lattice') return window.presentationState();
+    if(name==='soap') return window.SoapLive.getState();
     return {...window.RhineLive.getState(), spins:document.querySelector('#showSpins').getAttribute('aria-pressed'),view:document.querySelector('#waterView').getAttribute('aria-pressed'),line:document.querySelector('[data-line][aria-pressed="true"]')?.dataset.line};
   },name);
 }

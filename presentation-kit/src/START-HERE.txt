@@ -5,4 +5,4 @@ Each presentation has a printable one-page speaker note linked from the launcher
 The Rhine opening and closing show Ben’s recovered 1 June 2026 boat footage. Model scenes are labelled illustrations. This kit is for local authorized presentation review, not publication.
 External research links are optional online references.
 manifest.json records SHA-256 for the included files; provenance.json records original source hashes.
-QA results and rehearsal videos are delivered alongside the ZIP in out/; software WebGL is not a real-GPU pacing test.
+QA results and rehearsal videos are delivered alongside the ZIP in out/; software WebGL is not a real-GPU pacing test. The separate Windows GPU attempt records its renderer, frame timing and outcome in the QA report.

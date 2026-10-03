@@ -2,7 +2,7 @@
   "purpose": "Exact source hashes identify the worktree content copied; git HEAD is context, not a claim that the worktree was clean.",
   "sources": {
     "symplectic-camel": {
-      "head_at_sync": "b6fb007abb90d9a6972f0beae1078749c27481a0",
+      "head_at_sync": "c1efc74762e69865760ad328921d95ee592dfa78",
       "files_sha256": {
         "docs/index.html": "13ceda2f30fb0a90dcd8d8fef0f6692d30401a7fb2be8c62e11af78116a6634e",
         "docs/presenter.js": "1199fb7da4db7b2e9fdaada2984a23c0f9b62d1fab8ab949d18b7b6bf5310326",
@@ -24,9 +24,9 @@
       }
     },
     "rhine-dimples": {
-      "head_at_sync": "b74c39cdf0aaaebb41518740def85e5af5d5c653",
+      "head_at_sync": "d9a4a54e4c1261bae96f48eec5ad49bf8ca6da98",
       "files_sha256": {
-        "docs/live.html": "74445555245d3210491daccd512235c8d291dc6a0301dc18b2dfa8f7057a2184",
+        "docs/live.html": "7cbe8f9e9fb0ce5d31a21128c433fb7d7d6217dbc628915cd729eb9a78a1e1d5",
         "docs/live.js": "23075e53c95f74ca654007266d91c365615f4cc98da216e8660f4ee58b35593a",
         "docs/live.css": "664bb6c4123701e8f0bd54c94fa10b1a53c4d75e37b92879398a1c3681c590b2",
         "docs/live-story.js": "c220ea292a82961fa619ed7c54f0b1d478c7c6652d1bca0e83cd1df9026b0d49",
@@ -34,6 +34,20 @@
         "docs/water.js": "fe2d60bdbfda4a36ed2b238783a2f9c72e3b9fa78559cd708fe5c23ca9c8cb2a",
         "docs/figs.js": "c9b39bca1db25486a01c53f98c00b2e2d90b554c237b279f8142d6daa163208a",
         "docs/live-guide.html": "a2c79abaa1016435e768f129a804acd477d3074dbfb99f102bcb94b783a76f20"
+      }
+    },
+    "soap-films": {
+      "head_at_sync": "de3dee3cb40bf26fef5c56d134026d76d739cd78",
+      "files_sha256": {
+        "docs/live.html": "ee984d4e4baf32b3eef7101b5712fc912a6b3b615eb1e1d73fb4e58a0349a71b",
+        "docs/live.css": "48c9feb734c659fa84d04fd8d7d78deca74a8da284c901da27097242482a7ffd",
+        "docs/live.js": "83c4d867dbb6b653468c748790b30e3e424712ca444f46e42b5be04fa0458445",
+        "docs/live-model.js": "ad0cc14013634a3b5b235c1e51391dd5eecca1f3c98cdf806d1701e819cde0d6",
+        "docs/live-guide.html": "43ddc425d358763a95e451275aac22dfb932799581d5f43d3e48075417a2597a",
+        "docs/steiner.js": "fa467cdbc8cdf2fd3a15c1189a5aff100e725ca164f4a048d4714b2460163573",
+        "docs/surface.js": "5e60a98a4e4276dd6e2f7d43e6acd35a7c376d9dbb4a7e4fa1cb02e256c87041",
+        "docs/film3d.js": "54d50df8e66556c58ae54d05d59baf531e18002f2a9c4d014114eddfe82702bd",
+        "docs/filmcolor.js": "d7a2c5a32c198eb4716664bc4911966b9e53a6dad460ca57e567bef68343bd4c"
       }
     }
   },

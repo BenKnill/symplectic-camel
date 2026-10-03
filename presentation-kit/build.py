@@ -8,7 +8,7 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--output', type=Path, default=HERE.parents[1] / 'out' / 'presentations-kit.zip')
 a = p.parse_args()
 files = {str(f.relative_to(HERE / 'src')): f.read_bytes() for f in sorted((HERE / 'src').rglob('*')) if f.is_file()}
-for required in ['index.html', 'camel/index.html', 'lattice/index.html', 'rhine/index.html', 'camel/vendor/THREE-LICENSE.txt', *[x + '/live-guide.html' for x in ['camel','lattice','rhine']]]:
+for required in ['index.html', 'camel/vendor/THREE-LICENSE.txt', *[x + '/' + page for x in ['camel','lattice','rhine','soap'] for page in ['index.html','live-guide.html']]]:
     if required not in files:
         p.error('Missing kit source: ' + required + '; run sync-sources.py after sibling sources are ready')
 provenance = json.loads(files['provenance.json'])
