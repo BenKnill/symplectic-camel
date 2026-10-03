@@ -120,8 +120,8 @@
   </header>
 
   <section id="presenter" hidden aria-label="Five-beat presentation">
-    <div><span id="beat-label"></span><h2 id="beat-title"></h2><p id="prediction"></p></div>
-    <div class="present-tools"><button id="p-prev">← Back</button><button id="p-next">Next →</button><button id="p-reset">Restart beat</button><button id="p-full">Fullscreen</button><a href="../../lattice-echo/docs/live.html">Next: chaos →</a><a href="index.html">Explore freely</a><details><summary>Narration / N</summary><p id="p-notes"></p></details></div>
+    <div><span id="beat-label"></span><h2 id="beat-title" aria-live="polite"></h2><p id="prediction"></p></div>
+    <div class="present-tools"><button id="p-prev">← Back</button><button id="p-next">Next →</button><button id="p-reset">Restart beat</button><button id="p-full">Fullscreen</button><a href="../../lattice-echo/docs/live.html">Next: chaos →</a><a href="index.html">Explore freely</a><a href="live-guide.html">Rehearsal notes</a><details><summary>Narration / N</summary><p id="p-notes"></p></details></div>
   </section>
   <div class="main">
     <div class="stage" id="stage">
@@ -165,7 +165,7 @@
             <dt>Shadow area estimate</dt><dd class="big" id="ro-area">1.00 πr²</dd>
             <dt>Hole area</dt><dd id="ro-hole">0.52 πr²</dd>
             <dt>Lowest this scene</dt><dd id="ro-min">1.00 πr²</dd>
-            <dt>Ball outside</dt><dd id="ro-out">0%</dd>
+            <dt>Boundary samples outside</dt><dd id="ro-out">0%</dd>
             <dt>Deformation</dt><dd id="ro-s">0.00</dd>
           </dl>
         </div>
@@ -201,18 +201,20 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vendor/three-r128.min.js"></script>
 <script>
 (() => {
   // ---------- sampling: uniform points on S^3 (radius r = 1) ----------
   // The shadow of the image of the ball equals the shadow of the image of its boundary sphere,
   // and S^3 projects *uniformly* onto any coordinate 2-plane, so a sphere sample gives clean area estimates.
   const N = 110000;
+  let sampleSeed = 0x43414d45;
+  const random = () => { sampleSeed = (Math.imul(1664525,sampleSeed)+1013904223) >>> 0; return sampleSeed/4294967296; };
   const base = new Float32Array(N * 4);
   for (let i = 0; i < N; i++) {
     let a, b, c, d, n;
     do {
-      const u1 = Math.random() || 1e-9, u2 = Math.random(), u3 = Math.random() || 1e-9, u4 = Math.random();
+      const u1 = random() || 1e-9, u2 = random(), u3 = random() || 1e-9, u4 = random();
       const r1 = Math.sqrt(-2 * Math.log(u1)), r2 = Math.sqrt(-2 * Math.log(u3));
       a = r1 * Math.cos(2 * Math.PI * u2); b = r1 * Math.sin(2 * Math.PI * u2);
       c = r2 * Math.cos(2 * Math.PI * u4); d = r2 * Math.sin(2 * Math.PI * u4);
@@ -239,7 +241,7 @@
     },
     ham: {
       n: 3, title: "Nonlinear Hamiltonian flow", hold: 12,
-      formula: "φ = U(2) twist ∘ (p ↦ p − ∇V(q)) ∘ (q ↦ q + ∇T(p)) ∘ squeeze",
+      formula: "Apply: Uφ → kick → drift → squeeze → plane rotation → Uψ",
       text: "Exact symplectic shears with wavy potentials, rotations that mix the two planes, and a squeeze, all running at once. The exact mathematical map is symplectic. The sampled shadow folds and swirls; its displayed area is an estimate, not a proof of Gromov’s theorem.",
       vol: true, sym: true,
     },
@@ -371,7 +373,13 @@
   // ---------- 3D view ----------
   const stage = document.getElementById("stage");
   const glCanvas = document.getElementById("gl");
-  const renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true });
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true }); }
+  catch (error) {
+    document.getElementById("cap-title").textContent="WebGL is unavailable in this browser";
+    document.getElementById("cap-text").textContent="Open this presentation in a browser with WebGL enabled. The rehearsal notes remain available.";
+    window.CamelRenderError=String(error); return;
+  }
   renderer.setClearColor(0x0A0D14, 0);
   const PR = Math.min(2, window.devicePixelRatio || 1);
   renderer.setPixelRatio(PR);
@@ -611,7 +619,7 @@
     }
     if (prev) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(prev[0], prev[1], 3 * DPR, 0, Math.PI * 2); ctx.fill(); }
     ctx.textAlign = "left"; ctx.textBaseline = "bottom";
-    ctx.fillStyle = "rgba(220,226,236,0.8)"; ctx.fillText("πr²  Gromov floor", padL + 4 * DPR, y(1) - 3 * DPR);
+    ctx.fillStyle = "rgba(220,226,236,0.8)"; ctx.fillText(state.mode === "lin" || state.mode === "ham" ? "πr²  Gromov floor" : "πr²  reference", padL + 4 * DPR, y(1) - 3 * DPR);
     ctx.fillStyle = "#6FA8FF"; ctx.textBaseline = "top"; ctx.fillText("πR²  hole", padL + 4 * DPR, y(hole) + 3 * DPR);
   }
 
@@ -636,7 +644,7 @@
   function setPlaying(p) { state.playing = p; playBtn.textContent = p ? "Pause" : "Play"; playBtn.setAttribute("aria-label", p ? "Pause" : "Play"); }
   function setTour(t) { state.tour = t; tourBtn.setAttribute("aria-pressed", String(t)); }
 
-  for (const k of ORDER) $("m-" + k).addEventListener("click", () => { applyMode(k); state.T = 0; setTour(false); setPlaying(true); });
+  for (const k of ORDER) $("m-" + k).addEventListener("click", () => { if (presenting && window.CamelPresenter) { window.CamelPresenter.select({vol:1,lin:2,ham:3,lag:4}[k]); return; } applyMode(k); state.T = 0; setTour(false); setPlaying(true); });
   playBtn.addEventListener("click", () => setPlaying(!state.playing));
   tourBtn.addEventListener("click", () => { const t = !state.tour; setTour(t); if (t) setPlaying(true); });
   sIn.addEventListener("input", () => { setPlaying(false); state.s = +sIn.value; });
@@ -649,9 +657,14 @@
   });
 
   window.CamelLive = {
-    select(mode, deformation=1) { applyMode(mode); state.T=0;state.t=0;state.s=deformation;sIn.value=deformation;setTour(false);setPlaying(false); trace.fill(NaN); },
+    select(mode, deformation=1) {
+      applyMode(mode); state.T=0; state.t=0; state.s=deformation; state.R=.72;
+      sIn.value=deformation; RIn.value=.72; state.minArea=Infinity;
+      setTour(false); setPlaying(false); trace.fill(NaN); traceMode.fill(mode); trHead=0;
+      Object.assign(orbit,{theta:.72,phi:1.12,dist:7.4,dragging:false,idle:0});
+    },
     pause: () => setPlaying(false),
-    getState: () => ({mode:state.mode,s:state.s,playing:state.playing,t:state.t})
+    getState: () => ({mode:state.mode,s:state.s,R:state.R,playing:state.playing,t:state.t})
   };
   applyMode(state.mode);
   setPlaying(state.playing); setTour(state.tour);
@@ -694,8 +707,20 @@
     $("ro-s").textContent = state.s.toFixed(2);
     sOut.textContent = state.s.toFixed(2);
     ROut.textContent = state.R.toFixed(2);
-    const fits = outFrac < 0.0005;
-    setChip($("chip-fit"), fits, "fits through the hole", "sticks out of the hole");
+    // Keep containment claims separate from sampled rendering. The linear maps
+    // have an analytic projected radius; samples cannot certify the nonlinear case.
+    setChip($("chip-sym"), state.mode !== "vol" || state.s === 0,
+      state.s === 0 ? "identity (symplectic)" : "symplectic", "not symplectic");
+    if (state.mode !== "ham") {
+      const scale = state.mode === "lin" ? Math.max(1-.6*state.s,1/(1-.6*state.s))
+        : 1+state.s*(.84*Math.min(state.R,.95)-1);
+      setChip($("chip-fit"), scale <= state.R, "fits (analytic map)", "does not fit (analytic map)");
+    } else if (state.R < 1) {
+      setChip($("chip-fit"), false, "", "cannot fit (non-squeezing)");
+    } else {
+      $("chip-fit").className = "chip";
+      $("chip-fit").textContent = out > 0 ? "boundary samples outside" : "samples inside; fit unproved";
+    }
 
     requestAnimationFrame(frame);
   }
