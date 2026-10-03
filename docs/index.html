@@ -112,13 +112,17 @@
     .slider input { width: 120px; }
   }
 </style>
-
+<link rel="stylesheet" href="presenter.css">
 <div class="app">
   <header>
-    <h1>The Symplectic Camel <em>· non-squeezing</em></h1>
+    <a href="?present=1" id="present-link">Live presentation →</a><h1>The Symplectic Camel <em>· non-squeezing</em></h1>
     <p class="theorem">Gromov (1985): if <b>B⁴(r)</b> embeds symplectically in <b>Z(R) = B²(R) × ℝ²</b>, then <b>r ≤ R</b>.</p>
   </header>
 
+  <section id="presenter" hidden aria-label="Five-beat presentation">
+    <div><span id="beat-label"></span><h2 id="beat-title"></h2><p id="prediction"></p></div>
+    <div class="present-tools"><button id="p-prev">← Back</button><button id="p-next">Next →</button><button id="p-reset">Restart beat</button><button id="p-full">Fullscreen</button><a href="../../lattice-echo/docs/live.html">Next: chaos →</a><a href="index.html">Explore freely</a><details><summary>Narration / N</summary><p id="p-notes"></p></details></div>
+  </section>
   <div class="main">
     <div class="stage" id="stage">
       <canvas id="gl" aria-label="Rotating 3D view of the 4-ball projected to (x1, y1, x2), with the cylinder drawn as a glass tube"></canvas>
@@ -158,7 +162,7 @@
             <canvas class="shadow" id="shadowB" aria-label="Projection to the complementary coordinate plane"></canvas>
           </div>
           <dl class="readouts">
-            <dt>Shadow area</dt><dd class="big" id="ro-area">1.00 πr²</dd>
+            <dt>Shadow area estimate</dt><dd class="big" id="ro-area">1.00 πr²</dd>
             <dt>Hole area</dt><dd id="ro-hole">0.52 πr²</dd>
             <dt>Lowest this scene</dt><dd id="ro-min">1.00 πr²</dd>
             <dt>Ball outside</dt><dd id="ro-out">0%</dd>
@@ -236,24 +240,26 @@
     ham: {
       n: 3, title: "Nonlinear Hamiltonian flow", hold: 12,
       formula: "φ = U(2) twist ∘ (p ↦ p − ∇V(q)) ∘ (q ↦ q + ∇T(p)) ∘ squeeze",
-      text: "Exact symplectic shears with wavy potentials, rotations that mix the two planes, and a squeeze, all running at once. The shadow folds and swirls but its area never drops below πr². That floor is Gromov's theorem.",
+      text: "Exact symplectic shears with wavy potentials, rotations that mix the two planes, and a squeeze, all running at once. The exact mathematical map is symplectic. The sampled shadow folds and swirls; its displayed area is an estimate, not a proof of Gromov’s theorem.",
       vol: true, sym: true,
     },
     lag: {
       n: 4, title: "Cylinder over a Lagrangian plane", hold: 3,
       formula: "(x₁, x₂) ↦ a (x₁, x₂),  (y₁, y₂) ↦ (y₁, y₂) / a",
-      text: "Now the cylinder's base is the (x₁, x₂) plane, where ω vanishes. A symplectic map squeezes the ball through easily. The obstruction only exists for cylinders over planes where ω is nonzero.",
+      text: "Now the cylinder's base is the (x₁, x₂) plane, where ω vanishes. A symplectic map squeezes the ball through easily. The standard non-squeezing obstruction applies to the conjugate coordinate cylinder. It does not apply to this Lagrangian base.",
       vol: true, sym: true,
     },
   };
   const ORDER = ["vol", "lin", "ham", "lag"];
 
   const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const presenting = new URLSearchParams(location.search).has("present");
   const state = {
     mode: "vol", T: 0, t: 0, s: 0, R: 0.72,
     playing: !reduceMotion, tour: !reduceMotion, minArea: Infinity,
   };
   if (reduceMotion) state.s = 1;
+  if (presenting) { state.playing = false; state.tour = false; }
 
   const GAP = 0.8, UP = 3.2, DOWN = 2.2;
   const ease = x => { x = Math.min(1, Math.max(0, x)); return x * x * x * (x * (6 * x - 15) + 10); };
@@ -636,11 +642,17 @@
   sIn.addEventListener("input", () => { setPlaying(false); state.s = +sIn.value; });
   RIn.addEventListener("input", () => { state.R = +RIn.value; state.minArea = Infinity; });
   window.addEventListener("keydown", e => {
+    if (presenting || e.target.tagName === "BUTTON" || e.target.tagName === "SUMMARY") return;
     if (e.target.tagName === "INPUT" && e.key !== " ") return;
     if (e.key === " ") { e.preventDefault(); setPlaying(!state.playing); }
     const n = +e.key; if (n >= 1 && n <= 4) { applyMode(ORDER[n - 1]); state.T = 0; setTour(false); setPlaying(true); }
   });
 
+  window.CamelLive = {
+    select(mode, deformation=1) { applyMode(mode); state.T=0;state.t=0;state.s=deformation;sIn.value=deformation;setTour(false);setPlaying(false); trace.fill(NaN); },
+    pause: () => setPlaying(false),
+    getState: () => ({mode:state.mode,s:state.s,playing:state.playing,t:state.t})
+  };
   applyMode(state.mode);
   setPlaying(state.playing); setTour(state.tour);
 
@@ -650,12 +662,12 @@
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (state.playing) {
       state.T += dt; state.t += dt;
-      if (state.T > profileLength(state.mode)) {
+      if (!presenting && state.T > profileLength(state.mode)) {
         state.T = 0;
         if (state.tour) applyMode(ORDER[(ORDER.indexOf(state.mode) + 1) % ORDER.length]);
         else { state.minArea = Infinity; state.t = 0; }
       }
-      state.s = profile(state.mode, state.T);
+      if (!presenting) state.s = profile(state.mode, state.T);
       sIn.value = state.s;
       if (!orbit.dragging && !reduceMotion) { orbit.idle += dt; if (orbit.idle > 1.5) orbit.theta += dt * 0.06; }
     }
@@ -675,7 +687,7 @@
     trace[trHead] = area; traceMode[trHead] = state.mode; trHead = (trHead + 1) % TR_LEN;
     drawTrace();
 
-    $("ro-area").textContent = area.toFixed(2) + " πr²";
+    $("ro-area").textContent = "≈ " + area.toFixed(2) + " πr²";
     $("ro-hole").textContent = (state.R * state.R).toFixed(2) + " πr²";
     $("ro-min").textContent = isFinite(state.minArea) ? state.minArea.toFixed(2) + " πr²" : "—";
     $("ro-out").textContent = (outFrac * 100).toFixed(outFrac < 0.1 ? 1 : 0) + "%";
@@ -691,4 +703,5 @@
 })();
 </script>
 
+<script src="presenter.js"></script>
 </html>
