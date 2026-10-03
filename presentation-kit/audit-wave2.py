@@ -131,7 +131,37 @@ def browser_check():
     review = read(OUT/'reviews/final-visual-review.json')
     require(review['status'] == 'PASS' and set(review['viewports_reviewed']) == set(VIEWPORTS), 'Manual viewport review incomplete')
     require(review['kit_manifest_sha256'] == sha(FINAL/'manifest.json'), 'Visual review is for another kit')
-    return {'stats': stats, 'app_viewport_records': len(records), 'representative_screenshots': len(screenshots), 'renderers': sorted({w['renderer'] for d in records for w in d['webgl']}), 'review': review}
+    remediation = read(OUT/'reviews/capture-remediation.json')
+    require(remediation['status'] == 'PASS' and remediation['kit_manifest_sha256'] == sha(FINAL/'manifest.json'), 'Capture remediation incomplete or for another kit')
+    require(sha(remediation['original_failed_capture']) == remediation['original_failed_capture_sha256'], 'Original blank capture was not preserved')
+    supplemental = OUT/'qa-camel-capture-fix'
+    require(int((OUT/'runs/camel-capture-fix/exit-status').read_text()) == 0, 'Supplemental Camel run did not complete successfully')
+    supplement_stats = read(supplemental/'evidence/playwright-results.json')['stats']
+    require(supplement_stats['expected'] == 3 and supplement_stats['skipped'] == supplement_stats['unexpected'] == supplement_stats['flaky'] == 0, 'Supplemental Camel matrix failed or incomplete')
+    for viewport in VIEWPORTS:
+        supplied = supplemental/f'evidence/{viewport}-camel.json'
+        require(sha(supplied) == sha(OUT/f'evidence/{viewport}-camel.json'), 'Promoted Camel evidence differs from supplemental run')
+        data = read(supplied)
+        for scene in data['scenes']:
+            capture = scene['capture']; live, saved = capture['live'], capture['saved']
+            require(not live['contextLost'] and live['glError'] == 0 and live['canvasFullyInView'], 'Live Camel renderer not ready')
+            require(min(live['colors'],live['bright'],saved['colors'],saved['bright']) >= 100, 'Saved Camel screenshot is blank')
+            name = f"camel-{scene['index']+1:02}.png"
+            require(sha(supplemental/'screenshots'/viewport/name) == sha(OUT/'screenshots'/viewport/name), 'Promoted Camel image differs from pixel-checked capture')
+    overlay = read(OUT/'qa-camel-overlay-check/evidence/overlay-check.json')
+    require(int((OUT/'runs/camel-overlay-check/exit-status').read_text()) == 0 and overlay['status'] == 'PASS', 'Overlay-excluding capture check incomplete')
+    require(overlay['kit_manifest_sha256'] == sha(FINAL/'manifest.json') and overlay['helper_module_sha256'] == sha(HERE/'tests/canvas-capture.mjs'), 'Final capture helper/source binding differs')
+    require(sha(overlay['reviewed_relationship']['path']) == overlay['reviewed_relationship']['sha256'], 'Historical supplement relationship changed')
+    require({(x['viewport'],x['scene']) for x in overlay['cases']} == {(v,s) for v in VIEWPORTS for s in range(COUNTS['camel'])} and len(overlay['cases']) == 15, 'Incomplete overlay-excluding image matrix')
+    for case in overlay['cases']:
+        require(case['rect_matches'] and case['state_matches'] and case['document_dimensions_match'], 'Historical image overlay geometry differs')
+        require(sha(case['reviewed_image']) == case['reviewed_image_sha256'] and sha(case['reviewed_case']) == case['reviewed_case_sha256'], 'Reviewed image/case hash differs')
+        require(case['masked_saved']['colors'] >= 100 and case['masked_saved']['bright'] >= 100, 'DOM overlays hide a blank saved canvas')
+        require(sha(case['fresh_image']) == case['fresh_image_sha256'], 'Fresh final-helper capture hash differs')
+    fixtures = overlay['regression']['fixtures']
+    require(overlay['regression']['rejected_with_overlays'] and {x['viewport'] for x in fixtures} == set(VIEWPORTS), 'Overlay-only negative coverage incomplete')
+    require(all(x['rejected'] and x['actual_dom_overlays_preserved'] and x['masked_saved']['bright'] == 0 and sha(x['path']) == x['sha256'] for x in fixtures), 'Blank-with-overlays negative guard failed')
+    return {'stats': stats, 'supplemental_camel_stats': supplement_stats, 'capture_remediation': remediation, 'app_viewport_records': len(records), 'representative_screenshots': len(screenshots), 'renderers': sorted({w['renderer'] for d in records for w in d['webgl']}), 'review': review}
 
 def rehearsal_check():
     videos = []
@@ -198,6 +228,7 @@ def gpu_check():
 def delivery_check():
     build = read(OUT/'build.json')
     require(sha(OUT/'presentations-kit.zip') == build['sha256'], 'Final archive differs from build result')
+    require(sha(OUT/'reproducible-kit.zip') == build['sha256'], 'Independent ZIP rebuild differs')
     require(sha(LANE/'out/presentations-kit.zip') == build['sha256'], 'Top-level delivered ZIP was not updated')
     require((LANE/'out/kit.sha256').read_text().split()[0] == build['sha256'], 'Published local checksum is stale')
     branches = []
@@ -239,11 +270,14 @@ if a.write_reports:
     qa += ['- '+TITLES[n]+'. Evidence: `'+REFS[n]+'`.' for n in range(1,6) if checks[str(n)]=='PASS']
     if checks['2']=='PASS':
         qa += ['', 'Browser result, copied from the final generated report: `'+json.dumps(evidence['2']['stats'],sort_keys=True)+'`.', 'Software renderer: '+', '.join(evidence['2']['renderers'])+'.', 'Every scene has mouse, keyboard and emulated-touch forward/back traversal, a real state-changing intervention followed by reset, visible rendering, resize checks and screenshots. No requests outside the file-only extracted kit, console errors, uncaught errors or failed local resources were observed.']
+        qa += ['Supplemental Camel result after strengthening screenshot checks: `'+json.dumps(evidence['2']['supplemental_camel_stats'],sort_keys=True)+'`. The unchanged audience ZIP was tested; the original complete suite and its harness remain preserved. All Camel scene images now pass both live WebGL and saved-PNG checks. A final capture sweep excludes DOM overlays, rechecks the unchanged reviewed images, and rejects overlay-only blank-canvas fixtures at each viewport. Evidence: `out/wave2/reviews/capture-remediation.json`; `out/wave2/qa-camel-overlay-check/evidence/overlay-check.json`.']
     qa += ['', '## Failed / historical findings', '']
     fails=[f'- Check {n}: '+evidence[str(n)]['error'] for n in range(1,6) if checks[str(n)]!='PASS']
     qa += fails or ['No unresolved delivery failures.']
     if 'findings' in evidence['3']:
         qa += ['- '+f['problem']+' '+f['fix']+' Retained evidence: `'+f['evidence']+'`.' for f in evidence['3']['findings']]
+    if checks['2']=='PASS':
+        qa += ['- Final manual phone review caught a black Camel nonlinear-scene capture despite successful draw-call assertions. Fresh live/capture probes did not reproduce a persistent runtime defect. The harness now brings the canvas into view and checks both live pixels and the saved PNG, with no silent capture retries. All Camel cases were rerun at all three sizes and independently reviewed. The failed image/review remain in `out/wave2/reviews/first-final-visual-failure/`; source files, ZIP and rehearsal recordings did not change.']
     if checks['4']=='PASS':
         g=evidence['4'];qa += ['', 'Real-GPU outcome: **'+g['outcome']+'**. '+g.get('reason',g.get('renderer',''))+' The attempt result includes duration, owned profile/process cleanup and raw evidence.']
         if g['outcome'] == 'recorded':

@@ -14,6 +14,22 @@ For all scenes at 1440×1000, 1024×768 and 390×844, the suite traverses next/b
 
 The JSON report is `out/wave2/evidence/playwright-results.json`; per-presentation JSON provides exact state snapshots, renderers, viewport measurements, interactions and captured errors. Screenshots are `out/wave2/screenshots/<viewport>/`. Failure traces and screenshots remain in `out/wave2/evidence/playwright-artifacts/`. A passing software-rendered run does not establish real-GPU frame rate, pacing or physical-device behavior.
 
+Camel captures additionally bring the WebGL canvas fully into view, read its pixels in a callback after rendering, and check context health. The saved full-page PNG is then decoded and its canvas region must contain nonblank pixels outside the visible caption, legend and axis-label rectangles, padded by 12 CSS pixels for shadows and blur. This prevents text overlays from hiding a blank WebGL layer. `canvasCaptures` records both measurements for every scene. A blank image fails immediately and remains on disk; there are no screenshot retries. This guards the intermittent blank phone capture observed during the first final run. To rerun the complete Camel case at all three viewports in a separate evidence directory:
+
+```sh
+taskset -c 11 unshare -rn env OMP_NUM_THREADS=1 QA_OUTPUT=../../out/wave2/qa-camel-capture-fix npm test -- --grep 'camel:'
+```
+
+The supplemental run keeps the original whole-kit report and failed visual evidence. Its metadata must bind the same unchanged audience-kit manifest and record the original report and new harness hashes; it replaces only Camel case evidence after review.
+
+The overlay exclusion was added after the three complete Camel cases passed. Their exact historical harness remains under `qa-camel-capture-fix/test-source/`. Validate the final image guard without repeating interaction coverage:
+
+```sh
+taskset -c 11 unshare -rn env OMP_NUM_THREADS=1 QA_OUTPUT=../../out/wave2/qa-camel-overlay-check node tests/camel-capture-sweep.mjs
+```
+
+This capture-only sweep saves 15 fresh images, checks the 15 unchanged reviewed images using remeasured overlay rectangles only after exact canvas/state/viewport/document matches, and blackens only the canvas in three negative browser fixtures while leaving real DOM overlays visible. The guard must reject those fixtures even when the unmasked desktop/tablet images contain colorful overlay pixels. Its `evidence/overlay-check.json` and separate final harness manifest supplement the earlier interaction run; they do not change the reviewed image files.
+
 Record one uninterrupted rehearsal, visiting the launcher and all four presentations in a single page:
 
 ```sh

@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { kit,output,presentations,localURL,insideKit,sceneIndex,ready,state,observeErrors,setRange,instrumentWebGL } from './common.mjs';
 import { canonicalActions, performActions } from './rehearsal-actions.mjs';
+import { captureCamel } from './canvas-capture.mjs';
 
 test.beforeAll(async()=>{
   const external=Object.values(os.networkInterfaces()).flat().filter(address=>!address.internal);
@@ -142,8 +143,10 @@ for(const presentation of presentations)test(`${presentation.name}: every scene,
         const sceneLayout=await assertLayout(page);
         await page.evaluate(()=>scrollTo(0,0));
         const screenshot=path.join(output,'screenshots',testInfo.project.name,`${presentation.name}-${String(index+1).padStart(2,'0')}.png`);
-        await fs.mkdir(path.dirname(screenshot),{recursive:true});await page.screenshot({path:screenshot,fullPage:true});
-        evidence.scenes.push({index,title:await page.locator(presentation.title).innerText(),layout:sceneLayout,screenshot,state:await state(page,presentation.name)});
+        await fs.mkdir(path.dirname(screenshot),{recursive:true});
+        const capture=presentation.name==='camel'?await captureCamel(page,screenshot):(await page.screenshot({path:screenshot,fullPage:true}),null);
+        if(capture){evidence.canvasCaptures??=[];evidence.canvasCaptures.push({scene:index,screenshot,...capture,pass:true});}
+        evidence.scenes.push({index,title:await page.locator(presentation.title).innerText(),layout:sceneLayout,screenshot,state:await state(page,presentation.name),...(capture?{capture}:{})});
         if(presentation.name==='lattice'&&index===2){const result=await state(page,presentation.name);expect(result.step).toBe(0);expect(result.dir).toBe(0);expect(result.badL).toBe(0);expect(result.distinct).toBe(65536);expect(result.badF,'floating-point display differs after the canonical round trip').toBeGreaterThan(0);}
         if(presentation.name==='rhine'&&index===0){
           await page.locator('#illustrationToggle').click();await page.waitForTimeout(200);
