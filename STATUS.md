@@ -1,40 +1,36 @@
 # Presentations lane status
 
-Goal audit: work in progress. Initial inspection found clean reviewed source branches and no lane browser/recording evidence. No previous goal turn is available to classify; this turn has made progress by inspecting authoritative sources and starting implementation.
+This checkpoint made progress: source fixes, local browser evidence and delivery artifacts are audited against the full lane brief.
 
-1. FAIL — offline zip and SHA-256: build and fresh extraction pending. Evidence will be `../out/build.json` and `../out/kit.sha256`.
-2. FAIL — the initial `unshare -rn` browser run is preserved under `../out/qa-before/` and was intentionally superseded after the visual/reset fixes. Complete final run pending; output `../out/evidence/playwright-results.json`.
-3. FAIL — representative scene screenshots: pending; destination `../out/screenshots/`.
-4. FAIL — first uninterrupted recording completed and its regular-interval frames watched. Findings and fixes are recorded in `../out/reviews/first-rehearsal-review.json`; the after recording is running. Commands: `tests/rehearsal.mjs` and `tests/extract-frames.mjs`.
-5. PASS — recovered original footage: `sha256sum -c from-mac/live-media/SHA256SUMS` and full local decode verified; source paths and hashes in `../out/rhine-footage/recovery.json` and `rhine-dimples/FOOTAGE-MANIFEST.json`. The coordinator supplied the Mac transfer after the bounded search started; partial search evidence is preserved.
-6. FAIL — QA report with passed/failed/untested: final evidence pending. Real-GPU rendering/pacing and physical devices remain untested.
-7. FAIL — concise kit speaker notes and all three branch pushes: source adaptation underway; remote branch verification pending.
+1. PASS — Offline ZIP, hash, fresh extraction and file launcher. Command: `python3 presentation-kit/build.py; python3 -m zipfile -e; python3 presentation-kit/audit-delivery.py`. Evidence: `../out/build.json; ../out/kit-extracted-final/manifest.json`.
+2. PASS — Isolated real-browser rendering and interaction suite. Command: `taskset -c 11 unshare -rn env KIT_DIR=/home/bluestar/lanes/presentations/out/kit-extracted-final npm test (from presentation-kit)`. Evidence: `../out/evidence/playwright-results.json; ../out/evidence/*-camel.json, *-lattice.json, *-rhine.json`.
+3. PASS — Representative screenshots for every scene. Command: `the offline Playwright suite; manual three-viewport visual review`. Evidence: `../out/screenshots/; ../out/reviews/final-visual-review.json`.
+4. PASS — Two uninterrupted rehearsals, watched frames and fixes. Command: `tests/rehearsal.mjs followed by tests/extract-frames.mjs (commands in presentation-kit/tests/README.md)`. Evidence: `../out/rehearsals/before/; ../out/rehearsals/after/; ../out/reviews/first-rehearsal-review.json`.
+5. PASS — Rhine footage recovery and provenance. Command: `sha256sum -c SHA256SUMS; ffprobe; ffmpeg full decode; audit-delivery.py`. Evidence: `../out/rhine-footage/recovery.json; ../rhine-dimples/FOOTAGE-MANIFEST.json`.
+6. PASS — QA report with passed, failed and untested boundaries. Command: `python3 presentation-kit/audit-delivery.py --write-reports`. Evidence: `QA-REPORT.md; ../out/evidence/delivery-audit.json`.
+7. PASS — One-page speaker notes and all review branches pushed. Command: `offline Playwright notes print test; git ls-remote --heads origin refs/heads/codex/oliver-live-cloud-review-oct3`. Evidence: `../out/evidence/speaker-notes-pages.json; ../out/evidence/delivery-audit.json`.
 
-## Changes this checkpoint
+Kit: `/home/bluestar/lanes/presentations/out/presentations-kit.zip`
+SHA-256: `28ba324412c37198b017de7e5c2629bd602616943ed4f7354db4c97e2d12fbdc`
 
-- Read the lane brief and shared rules; retained all reviewed numerical/controller fixes.
-- Assigned separate source, footage and browser-validation work within the lane.
-- Chose a self-contained, committed kit source snapshot and build script in `presentation-kit/`, with direct `file://` entry points. Runtime dependencies are vendored with licence notices.
+## Problems found by watching the first rehearsal and changes
 
-## Decisions and scope
+- The Camel time trace is cut off inside its sidebar. The separate map-scene counter also competes with the guided beat count. Make the desktop main panel tall enough for all measurements, reduce shadow/trace sizes slightly, remove excess readout margins and hide the redundant map counter in presenter mode. Short windows scroll the document instead of cropping the chart. Evidence: `frames/frame-003.png` in the before recording.
+- Rhine briefly opens with an empty heading and prediction, and a missing-footage message while the recovered local clip is loading. Provide meaningful initial HTML heading and prediction, an honest loading message and cached-media initialization. Evidence: `frames/frame-011.png` in the before recording.
+- Rhine controls fall below the recorded viewport; clicking Next causes scrolling. The closing video grows too large because its height selector no longer matches. Place main scene navigation before the visuals and constrain the closing video explicitly while preserving the full image. Evidence: `frames/frame-014.png and frames/frame-017.png` in the before recording.
+- The recorded circulation action does not perform the opposite-pair cancellation requested by the prediction. The pressure action also does not double the prompted value. Some conclusions arrive too quickly to read. Rehearse the actual prompts: circulation 40 then 80; opposite pair with centre zero and radius three; reveal spins and top view. Lengthen scene dwell and leave time after each revealed consequence. Evidence: `frames/frame-014.png and before/events.json` in the before recording.
 
-- The coordinator recovered the original Rhine bookends from Ben’s Mac. Use the verified local media, retain labelled model illustrations, and exclude the private footage and large source frames from public Git commits as the transfer note requires.
-- Chromium SwiftShader is correctness/screenshot evidence only. Real-GPU rehearsal on Ben's Mac and physical mobile devices are untested; narrated videos remain unavailable.
-- Use CPU 11 for heavy local work, no GitHub CI, no deployment and no messages to others. Only the three `codex/oliver-live-cloud-review-oct3` branches may be pushed.
+Additional after-recording finding: After the first layout fixes, the instructed radius-three measuring loop was clipped by the shorter Rhine canvas. A closed contour should remain visibly closed during the cancellation demonstration. Scale the live circulation view to the available height while preserving the numerical integral and pointer-coordinate mapping; repeat the complete uninterrupted rehearsal and full suite. Evidence: `out/rehearsals/after-v1/frames/frame-023.png`. The intermediate recording and intentionally superseded partial run remain under `../out/rehearsals/after-v1/` and `../out/qa-final-v1/`.
 
-Baseline ZIP built successfully: `/home/bluestar/lanes/presentations/out/presentations-before.zip`, SHA-256 `86f52c1410d0b977a560a581bb7f9cee1fdb49c940851110c94e1129ed8939e7`. The first uninterrupted visual rehearsal is running against its fresh extraction. Browser completion remains unproven.
+Additional tablet image-review finding: At 1024×768 the fixed-height Camel app grid allocated less vertical space than its 650px main panel; the controls overlapped the lower sidebar and were partly hidden by the projection. Let the desktop/tablet app height follow content and reserve a minimum 650px grid track for the main panel; add an explicit sibling-separation browser assertion for every scene. Evidence: `out/reviews/secondary-tablet-camel-overlap.png`. The earlier automated run missed sibling overlap; its passing result remains historical under `../out/qa-final-v2/`, with the corresponding recording under `../out/rehearsals/after-v2/`.
+
+## Decisions and limits
+
+- Preserved reviewed numerical/controller fixes and kept theorem, numerical illustration, formally verified kernel and unverified browser-rendering scopes explicit. No new HOL replay is claimed.
+- Coordinator supplied the recovered original Rhine bookends. Their exact source paths and hashes are in the recovery report. Private media is in the local ZIP, ignored by Git; the committed source and builder require restoring those verified files. No footage or large frame folders were published.
+- Heavy work used CPU 11. All validation ran locally; no GitHub CI, deployment or outward messages.
+- SwiftShader validates software rendering, not real-GPU frame rate or pacing. Phone/touch tests are emulation; physical devices and a real-GPU Mac rehearsal remain untested.
 
 ## Next
 
-Finish compact guided sources and notes, assemble and extract the kit, run offline browser checks, record/watch/fix/re-record the full sequence, then commit and push tested sources and audit all checks.
-
-## Rehearsal-fix checkpoint
-
-- Watched the before contact sheet and full-size frames; fixed clipped Camel trace/redundant counter, blank Rhine startup, below-fold navigation and oversized closing clip. Corrected operator interventions and increased reading time.
-- Strengthened reset coverage with real camera drag/zoom and a single playback toggle; preserved automatic rehearsal behavior.
-- Rebuilt final private ZIP under `unshare -rn` and extracted into `../out/kit-extracted-final/`. A second offline build is byte-identical (evidence `../out/evidence/reproducibility.json`).
-- Final ZIP SHA-256: `8840803dc3cdb89d8e9025349adbef68ed98d033b1cad52ad0c3df7e36e275c1`. Final browser checks, after-video inspection and final report generation remain.
-
-## Closed-contour review checkpoint
-
-The intermediate after recording exposed a clipped measuring contour. Corrected live view scaling and tested full contour visibility at all three sizes, preserving the numerical integral and original article/film views. Evidence: `../out/rhine-footage/loop-framing-check.json`. The final uninterrupted rehearsal and full suite are being repeated; intermediate evidence is retained under `../out/rehearsals/after-v1/` and `../out/qa-final-v1/`. Current ZIP SHA-256: `36ef162988590e84d87ee833c79add2b83773071222584b8a74002743244e7ba`.
+No remaining lane completion work. Ben’s later real-GPU and physical-device rehearsal is outside this verified local kit.
