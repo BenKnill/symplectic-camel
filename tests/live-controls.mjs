@@ -17,3 +17,5 @@ const C=fixture(),selected=[];C.env.CamelLive={select:(...args)=>selected.push(a
 assert.equal(P.getBeat(),0);for(let n=1;n<5;n++){C.key('ArrowRight','p-next');assert.equal(P.getBeat(),n);assert.equal(C.env.location.hash,'#'+(n+1))}C.key('ArrowRight','p-next');assert.equal(P.getBeat(),4);C.key('ArrowLeft','p-prev');assert.equal(P.getBeat(),3);C.key('1','p-next');assert.equal(P.getBeat(),0);C.key('5','steps');assert.equal(P.getBeat(),0);C.key('n','p-next');assert.ok(C.node('.present-tools details').open);assert.equal(C.key(' ','p-next'),false);C.key('r','p-next');assert.deepEqual(JSON.parse(JSON.stringify(selected.at(-1))),['vol',0]);
 console.log('PASS Camel presenter: five beats, clamps, focused-button arrows, number shortcuts, notes toggle, input protection, native Space, scene reset');
 console.log('Controller tests use a minimal DOM harness; they do not certify rendering, browser APIs or visual layout');
+
+C.env.history.replaceState=()=>{throw new Error('Local viewer restricts history')};C.key('ArrowRight','p-next');assert.equal(P.getBeat(),1);console.log('PASS optional history rejection does not stop beat selection');
