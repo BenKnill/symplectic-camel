@@ -1,0 +1,8 @@
+Extract the entire ZIP to a new folder, then open index.html directly.
+No install, server or network connection is needed by the presentations.
+Use a modern WebGL-capable browser. Start with the camel, then follow the next-presentation links.
+Each presentation has a printable one-page speaker note linked from the launcher.
+The Rhine opening and closing show Ben’s recovered 1 June 2026 boat footage. Model scenes are labelled illustrations. This kit is for local authorized presentation review, not publication.
+External research links are optional online references.
+manifest.json records SHA-256 for the included files; provenance.json records original source hashes.
+QA results and rehearsal videos are delivered alongside the ZIP in out/; software WebGL is not a real-GPU pacing test.

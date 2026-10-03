@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chaos backwards · one cell at a time</title><link rel="stylesheet" href="live.css"></head>
+<body>
+<header><a href="../index.html" class="kit-home">All three presentations</a><a href="../camel/index.html?present=1">← The symplectic camel</a><span>BEN KNILL · LIVE EXPLANATION</span><a href="../rhine/index.html">Next: the river →</a></header>
+<main>
+<div class="scene-top"><p class="eyebrow" id="scene-label">01 / 04 · PREDICT</p><a href="live-guide.html">Speaker notes</a></div>
+<h1 id="scene-title">Chaos can scramble. Must it forget?</h1>
+<p class="lede" id="scene-prompt">After 100 forward steps and 100 backward steps, which picture will come home exactly?</p>
+<nav class="scene-controls" aria-label="Presentation scenes"><button id="scene-prev">← Back</button><output id="scene-count" aria-live="polite">1 / 4</output><button id="scene-next">Intervene →</button><button id="scene-reset">Reset presentation</button></nav>
+<section class="echo" id="echo-panel" aria-label="Numerical echo experiment">
+<div class="images"><div><h2>Floating point</h2><canvas id="float" width="256" height="256" aria-label="Floating-point echo"></canvas><output id="float-count"></output></div><div><h2>Exact 256×256 lattice</h2><canvas id="exact" width="256" height="256" aria-label="Exact lattice echo"></canvas><output id="exact-count"></output></div></div>
+<div class="echo-readout"><p id="echo-status" aria-live="polite"></p><p id="distinct" class="good"></p></div>
+<p class="note" id="scene-observation">Two rules, the same starting image. Predict before pressing Intervene.</p>
+<details id="experiment-controls"><summary>Experiment controls</summary><div class="tools"><button id="scramble">Scramble</button><button id="back">Run back</button><button id="stop">Pause</button><button id="reset">Reset experiment</button><label>Steps <input id="steps" type="range" min="10" max="200" step="10" value="100"><output id="steps-out">100</output></label></div><p class="note">K = 2. Exact counts compare integer coordinates. Float counts compare 256×256 display bins, not floating-point bits. Both follow identities, even where equal colours hide a mismatch.</p></details>
+</section>
+<div id="establish-panel" class="layout" hidden>
+<section class="conclusion"><h2>A permutation does not forget.</h2><p>Each kick shifts whole columns. Each drift shifts whole rows. Neither merges cells. Undo drift, then undo kick.</p><p id="result-summary" class="result" aria-live="polite"></p><p>This changes the numerical model to preserve information. It does not establish that the lattice faithfully simulates every real system.</p><div class="boundary"><p><b>Mathematical claim:</b> cyclic shifts are bijections; their composition has an inverse.</p><p><b>Numerical illustration:</b> these counts come from this JavaScript run.</p><p><b>Formally verified kernel:</b> the repository’s HOL Light source binds 23 AArch64 instruction words (92 bytes) and proves the forward/backward maps under memory and ABI preconditions.</p><p><b>Outside that proof:</b> this port, the toy, float comparison, calling loop, browser and rendered pixels. No new proof replay is claimed here.</p></div></section>
+<section class="toy"><h2>Follow one of 64 cells.</h2><p id="phase-title" class="phase"></p><div id="grid" aria-label="8 by 8 lattice, click a cell to follow its identity"></div><p id="selected" aria-live="polite"></p><p id="occupancy" class="good"></p><div class="tools"><button id="half-prev">← Previous half-step</button><button id="half-next">Next half-step →</button><button id="half-reset">Reset toy</button></div><p id="formula" class="formula"></p><details><summary>Toy rule and coordinate convention</summary><p>Both coordinates wrap modulo 8; p increases down the screen. Colours and numbers follow original identities. Fixed kick table: [0, 1, 2, 1, 0, −1, −2, −1]. This toy teaches the mechanism; it is not the byte kernel.</p></details></section>
+</div>
+<details id="narration"><summary>Presenter cues / N</summary><p>Predict the return. Intervene: apply a fixed rounded kick, then drift, one hundred times. Reveal: undo drift before undoing kick. Compare the measured identity counts, not just colours. Establish: rounding a rule can preserve all state information when each update is a permutation. The machine-code proof and this browser illustration have different boundaries.</p></details>
+<footer><span>← → scenes · S scramble · B reverse · Space pause · R reset · N cues · F fullscreen</span><button id="full">Fullscreen</button></footer>
+</main><script src="lattice.js"></script><script src="camel.js"></script><script src="live.js"></script>
+</body></html>

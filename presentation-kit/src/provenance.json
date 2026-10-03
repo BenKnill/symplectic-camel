@@ -1,0 +1,50 @@
+{
+  "purpose": "Exact source hashes identify the worktree content copied; git HEAD is context, not a claim that the worktree was clean.",
+  "sources": {
+    "symplectic-camel": {
+      "head_at_sync": "c8961330a745d54c293cf10f1a3d12d08807e922",
+      "files_sha256": {
+        "docs/index.html": "19f633eb4ce3e2168704ba67f4f434803c7980d86201eb5ea3ce848eaf57f519",
+        "docs/presenter.js": "1199fb7da4db7b2e9fdaada2984a23c0f9b62d1fab8ab949d18b7b6bf5310326",
+        "docs/presenter.css": "2c883d10aaa7829c9e53585c53ccef3b329f241e7ccddff12c49bd4eb66ab97b",
+        "docs/live-guide.html": "caddebe38b26b3f6ebaf54597b45e8e219ef4311c03e9ba254843ccaba6f2272",
+        "docs/vendor/three-r128.min.js": "f36957277d6ece3c6db2a5c0461319ef4a9b21611e4d7f987be6a42f5ffe456f",
+        "docs/vendor/THREE-LICENSE.txt": "139b3447715c4230ea582a72987c0604582b74f80aec27f93efc10bb5f2ebe5b"
+      }
+    },
+    "lattice-echo": {
+      "head_at_sync": "c55be8dd4bdc783790f565475bb4dc5ac321d6f9",
+      "files_sha256": {
+        "docs/live.html": "1fd88cbdc855b609a10ff260e552927724d203ac66d8452c800ace0762474370",
+        "docs/live.js": "fb9444e37805939a8730a5ce904703dfc3f5a2c73253e73765e8c8d7ce1f5e97",
+        "docs/live.css": "90b50f0ac1d6cb0ac17273ec7e07fff93cbc91d244e569e07660215b0271a8ac",
+        "docs/lattice.js": "112b6491ad36c9fb1e55e6e7d231f0cb9743fceea085e1d8bc7fa8a43891e274",
+        "docs/camel.js": "52ccee94b462d98e2e0885ca3f482605457f4bcd8d90cf2ce579b6b8fb06dfc1",
+        "docs/live-guide.html": "aa1d94592644d151090aa1f04be55d232ebfcc8e5cb41f7e4552ebb3c153b378"
+      }
+    },
+    "rhine-dimples": {
+      "head_at_sync": "d9df47563a8afc0c0406b0483d6c12fcd8739918",
+      "files_sha256": {
+        "docs/live.html": "c7505b3298f071d7ee4cac50757413cd26c28f54f0587d7462a417d644d034b5",
+        "docs/live.js": "324d930eaa8196585b2bd44eba621df49ffc9ddde5746c4fdf4b8aee1e8b541d",
+        "docs/live.css": "19373582098609f76da437f6bc754d1f0e96a31d7e952271042c05e8430ec7f5",
+        "docs/live-story.js": "c220ea292a82961fa619ed7c54f0b1d478c7c6652d1bca0e83cd1df9026b0d49",
+        "docs/vortex.js": "c255ecbc4b2cc854ee3e6ae65c83b8bb9aac1da99084dfe95cdec33c9608dccf",
+        "docs/water.js": "fe2d60bdbfda4a36ed2b238783a2f9c72e3b9fa78559cd708fe5c23ca9c8cb2a",
+        "docs/figs.js": "2a10734c801e339d7fb4cef54b334f7727b58aa4a8544171245e823a2ccbc5f8",
+        "docs/live-guide.html": "a2c79abaa1016435e768f129a804acd477d3074dbfb99f102bcb94b783a76f20"
+      }
+    }
+  },
+  "recovered_footage": {
+    "source": "/home/bluestar/lanes/presentations/from-mac/live-media",
+    "files_sha256": {
+      "rhine-close.mp4": "c0a9f64a540ecd1897a5d2fd8f4104a792a2ea4cc1555ebeaafbcf5579c79115",
+      "rhine-open.mp4": "fa27b6d7089c6d20f2dab8f6a07e18e27f5f0d21cb753c7a8d5e1f3c614c5141",
+      "rhine-poster.jpg": "1b375a9e8038e0caf58c2d4dc4aff1ef348c83ac85e05c44602bf13bfbb055df",
+      "README.md": "76f621089eff77fcfe5ec9d2eadd389b7d9a33c3dbe845bdbc419cc72423f54e"
+    },
+    "rights": "Ben\u2019s own boat footage, 1 June 2026. Local authorized review only; media excluded from public Git commits."
+  }
+}

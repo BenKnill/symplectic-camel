@@ -7,3 +7,5 @@ video/*.mkv
 video/*.wav
 video/*.jpg
 video/*.log
+presentation-kit/node_modules/
+presentation-kit/src/rhine/live-media/
