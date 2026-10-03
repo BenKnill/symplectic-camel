@@ -1,36 +1,33 @@
-# Presentations lane status
+# Presentations lane — Wave 2
 
-This checkpoint made progress: source fixes, local browser evidence and delivery artifacts are audited against the full lane brief.
+Evidence paths below are relative to the presentations lane root.
 
-1. PASS — Offline ZIP, hash, fresh extraction and file launcher. Command: `python3 presentation-kit/build.py; python3 -m zipfile -e; python3 presentation-kit/audit-delivery.py`. Evidence: `../out/build.json; ../out/kit-extracted-final/manifest.json`.
-2. PASS — Isolated real-browser rendering and interaction suite. Command: `taskset -c 11 unshare -rn env KIT_DIR=/home/bluestar/lanes/presentations/out/kit-extracted-final npm test (from presentation-kit)`. Evidence: `../out/evidence/playwright-results.json; ../out/evidence/*-camel.json, *-lattice.json, *-rhine.json`.
-3. PASS — Representative screenshots for every scene. Command: `the offline Playwright suite; manual three-viewport visual review`. Evidence: `../out/screenshots/; ../out/reviews/final-visual-review.json`.
-4. PASS — Two uninterrupted rehearsals, watched frames and fixes. Command: `tests/rehearsal.mjs followed by tests/extract-frames.mjs (commands in presentation-kit/tests/README.md)`. Evidence: `../out/rehearsals/before/; ../out/rehearsals/after/; ../out/reviews/first-rehearsal-review.json`.
-5. PASS — Rhine footage recovery and provenance. Command: `sha256sum -c SHA256SUMS; ffprobe; ffmpeg full decode; audit-delivery.py`. Evidence: `../out/rhine-footage/recovery.json; ../rhine-dimples/FOOTAGE-MANIFEST.json`.
-6. PASS — QA report with passed, failed and untested boundaries. Command: `python3 presentation-kit/audit-delivery.py --write-reports`. Evidence: `QA-REPORT.md; ../out/evidence/delivery-audit.json`.
-7. PASS — One-page speaker notes and all review branches pushed. Command: `offline Playwright notes print test; git ls-remote --heads origin refs/heads/codex/oliver-live-cloud-review-oct3`. Evidence: `../out/evidence/speaker-notes-pages.json; ../out/evidence/delivery-audit.json`.
+1. PASS — Soap presentation, one-page notes and source integrity. Command: `python3 presentation-kit/audit-wave2.py --write-reports` (repository root). Evidence: `soap-films/validation/; out/wave2/evidence/speaker-notes-pages.json; kit provenance`.
+2. PASS — All-four isolated offline browser suite and screenshots. Command: `python3 presentation-kit/audit-wave2.py --write-reports` (repository root). Evidence: `out/wave2/evidence/playwright-results.json; out/wave2/screenshots/; out/wave2/reviews/final-visual-review.json`.
+3. PASS — All-four before/after rehearsals, watched and fixed. Command: `python3 presentation-kit/audit-wave2.py --write-reports` (repository root). Evidence: `out/wave2/rehearsals/{before,after}/; out/wave2/reviews/before-rehearsal-review.json`.
+4. PASS — Bounded real-GPU attempt with a verified terminal result. Command: `python3 presentation-kit/audit-wave2.py --write-reports` (repository root). Evidence: `out/wave2/real-gpu/result.json and its referenced raw evidence`.
+5. PASS — Updated ZIP, checksum, reports and pushed review branches. Command: `python3 presentation-kit/audit-wave2.py --write-reports` (repository root). Evidence: `out/wave2/build.json; out/kit.sha256; out/wave2/evidence/delivery-audit.json`.
 
 Kit: `/home/bluestar/lanes/presentations/out/presentations-kit.zip`
-SHA-256: `28ba324412c37198b017de7e5c2629bd602616943ed4f7354db4c97e2d12fbdc`
+SHA-256: `37118c0f174c9eb338b95fd9ff30c2e3e3198b3349932a634cd7ad236f4ba85e`
 
-## Problems found by watching the first rehearsal and changes
+## What changed
 
-- The Camel time trace is cut off inside its sidebar. The separate map-scene counter also competes with the guided beat count. Make the desktop main panel tall enough for all measurements, reduce shadow/trace sizes slightly, remove excess readout margins and hide the redundant map counter in presenter mode. Short windows scroll the document instead of cropping the chart. Evidence: `frames/frame-003.png` in the before recording.
-- Rhine briefly opens with an empty heading and prediction, and a missing-footage message while the recovered local clip is loading. Provide meaningful initial HTML heading and prediction, an honest loading message and cached-media initialization. Evidence: `frames/frame-011.png` in the before recording.
-- Rhine controls fall below the recorded viewport; clicking Next causes scrolling. The closing video grows too large because its height selector no longer matches. Place main scene navigation before the visuals and constrain the closing video explicitly while preserving the full image. Evidence: `frames/frame-014.png and frames/frame-017.png` in the before recording.
-- The recorded circulation action does not perform the opposite-pair cancellation requested by the prediction. The pressure action also does not double the prompted value. Some conclusions arrive too quickly to read. Rehearse the actual prompts: circulation 40 then 80; opposite pair with centre zero and radius three; reveal spins and top view. Lengthen scene dwell and leave time after each revealed consequence. Evidence: `frames/frame-014.png and before/events.json` in the before recording.
-
-Additional after-recording finding: After the first layout fixes, the instructed radius-three measuring loop was clipped by the shorter Rhine canvas. A closed contour should remain visibly closed during the cancellation demonstration. Scale the live circulation view to the available height while preserving the numerical integral and pointer-coordinate mapping; repeat the complete uninterrupted rehearsal and full suite. Evidence: `out/rehearsals/after-v1/frames/frame-023.png`. The intermediate recording and intentionally superseded partial run remain under `../out/rehearsals/after-v1/` and `../out/qa-final-v1/`.
-
-Additional tablet image-review finding: At 1024×768 the fixed-height Camel app grid allocated less vertical space than its 650px main panel; the controls overlapped the lower sidebar and were partly hidden by the projection. Let the desktop/tablet app height follow content and reserve a minimum 650px grid track for the main panel; add an explicit sibling-separation browser assertion for every scene. Evidence: `out/reviews/secondary-tablet-camel-overlap.png`. The earlier automated run missed sibling overlap; its passing result remains historical under `../out/qa-final-v2/`, with the corresponding recording under `../out/rehearsals/after-v2/`.
+- Added The Soap Computer as the fourth compact presentation with one-page notes, using the existing network and surface engines; no new physics or Blender rendering.
+- Extended offline navigation, scene/input/reset/render/resize checks and continuous rehearsals to all four presentations. Wave 1 remains archived under `out/wave1/ARCHIVE.json`.
+- Watched-before finding: After the second soap dip, two five-edge networks with different gaps are overlaid; their union looks like a complete six-edge hexagon. The equal-length readout also says 0.00% longer. Fix: Clear the competitor overlay when changing dips, preserve a computed first-versus-second length comparison, and describe equal lengths as equal when an overlay is deliberately enabled. Evidence: `out/wave2/rehearsals/before/frames/frame-021.png`.
+- Watched-before finding: The tetrahedral film stays at one camera angle while its cue asks the presenter to rotate; a rear triple line is occluded, making the four-line junction hard to inspect. Fix: Use a slow real camera drag before highlighting the junctions, in both Linux and native GPU rehearsal actions. Evidence: `out/wave2/rehearsals/before/frames/frame-022.png and before/events.json (no camera intervention)`.
+- Watched-before finding: The first all-four pass moves through the dense proof/establishment panels too quickly to read them and inspect the changed wire frame. Fix: Lengthen ordinary final scene holds and keep the Lattice, Rhine and Soap establishment panels visible for at least30seconds. Evidence: `out/wave2/rehearsals/before/frames/frame-023.png and before/events.json planned scene holds`.
+- Windows GPU attempt: recorded. ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 (0x00001F14) Direct3D11 vs_5_0 ps_5_0, D3D11) Evidence: `out/wave2/real-gpu/result.json`.
+- Footage recovery: **RECOVERED** from `/Users/boxer/Documents/Codex/2026-10-02/task-4/rhine-dimples/docs/live-media/`. Source paths and verified hashes: `out/rhine-footage/recovery.json`; local copies: `rhine-dimples/docs/live-media/`.
 
 ## Decisions and limits
 
-- Preserved reviewed numerical/controller fixes and kept theorem, numerical illustration, formally verified kernel and unverified browser-rendering scopes explicit. No new HOL replay is claimed.
-- Coordinator supplied the recovered original Rhine bookends. Their exact source paths and hashes are in the recovery report. Private media is in the local ZIP, ignored by Git; the committed source and builder require restoring those verified files. No footage or large frame folders were published.
-- Heavy work used CPU 11. All validation ran locally; no GitHub CI, deployment or outward messages.
-- SwiftShader validates software rendering, not real-GPU frame rate or pacing. Phone/touch tests are emulation; physical devices and a real-GPU Mac rehearsal remain untested.
+- Theorem, numerical model and rendering claims remain separate. Soap mesh topology is prescribed; two selected network outcomes do not measure success rates or prove global optimality.
+- Recovered Rhine footage remains private local media with pinned source hashes; it is not committed or published.
+- CPU 11 for heavy Linux work. Local checks only; no GitHub CI, deployment, public distribution or Ben browser profile use.
+- Phone and tablet checks are emulation. Physical devices, Ben’s Mac and narrated delivery remain untested.
 
 ## Next
 
-No remaining lane completion work. Ben’s later real-GPU and physical-device rehearsal is outside this verified local kit.
+All Wave 2 delivery checks are complete.
