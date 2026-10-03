@@ -2,11 +2,11 @@
   "purpose": "Exact source hashes identify the worktree content copied; git HEAD is context, not a claim that the worktree was clean.",
   "sources": {
     "symplectic-camel": {
-      "head_at_sync": "fa8204508a4a3f5563be789310266ade2b90c932",
+      "head_at_sync": "b6fb007abb90d9a6972f0beae1078749c27481a0",
       "files_sha256": {
         "docs/index.html": "13ceda2f30fb0a90dcd8d8fef0f6692d30401a7fb2be8c62e11af78116a6634e",
         "docs/presenter.js": "1199fb7da4db7b2e9fdaada2984a23c0f9b62d1fab8ab949d18b7b6bf5310326",
-        "docs/presenter.css": "1fb47b19a1a06cd21793026269a1e6ca5fbc2d8e1647ec534a84f40e7cd657eb",
+        "docs/presenter.css": "4ac7a8a4910ff9d6063e0eb3f1f4dc2ac0e57edd4e7480d2ee4d2f8e4e00294f",
         "docs/live-guide.html": "caddebe38b26b3f6ebaf54597b45e8e219ef4311c03e9ba254843ccaba6f2272",
         "docs/vendor/three-r128.min.js": "f36957277d6ece3c6db2a5c0461319ef4a9b21611e4d7f987be6a42f5ffe456f",
         "docs/vendor/THREE-LICENSE.txt": "139b3447715c4230ea582a72987c0604582b74f80aec27f93efc10bb5f2ebe5b"

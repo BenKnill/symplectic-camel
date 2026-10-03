@@ -26,10 +26,12 @@ async function layout(page){
     const canvases=[...document.querySelectorAll('canvas')].filter(visible).map(element=>({id:element.id,width:element.width,height:element.height,displayWidth:element.getBoundingClientRect().width,displayHeight:element.getBoundingClientRect().height}));
     const trace=document.querySelector('#trace'),side=document.querySelector('.side');
     const traceFits=!trace||!side||!visible(trace)||(trace.getBoundingClientRect().top>=side.getBoundingClientRect().top-2&&trace.getBoundingClientRect().bottom<=side.getBoundingClientRect().bottom+2);
-    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,clipped,clippedByAncestor,traceFits,canvases};
+    const main=document.querySelector('body.presenting .main'),controls=document.querySelector('body.presenting .controls');
+    const controlsClearMain=!main||!controls||controls.getBoundingClientRect().top>=main.getBoundingClientRect().bottom-2;
+    return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,clipped,clippedByAncestor,traceFits,controlsClearMain,canvases};
   });
 }
-async function assertLayout(page){const result=await layout(page);expect(result.scrollWidth,'document must not scroll sideways').toBeLessThanOrEqual(result.width+2);expect(result.clipped,'heading/control/canvas edges must remain inside viewport').toEqual([]);expect(result.clippedByAncestor,'visible content must not be cropped by an ancestor').toEqual([]);expect(result.traceFits,'Camel trace must fit completely inside its sidebar').toBe(true);for(const canvas of result.canvases){expect(canvas.width).toBeGreaterThan(0);expect(canvas.height).toBeGreaterThan(0);expect(canvas.displayWidth).toBeGreaterThanOrEqual(90);}return result;}
+async function assertLayout(page){const result=await layout(page);expect(result.scrollWidth,'document must not scroll sideways').toBeLessThanOrEqual(result.width+2);expect(result.clipped,'heading/control/canvas edges must remain inside viewport').toEqual([]);expect(result.clippedByAncestor,'visible content must not be cropped by an ancestor').toEqual([]);expect(result.traceFits,'Camel trace must fit completely inside its sidebar').toBe(true);expect(result.controlsClearMain,'Camel controls must be below the main visual and sidebar').toBe(true);for(const canvas of result.canvases){expect(canvas.width).toBeGreaterThan(0);expect(canvas.height).toBeGreaterThan(0);expect(canvas.displayWidth).toBeGreaterThanOrEqual(90);}return result;}
 async function navigate(page,presentation,direction,method){
   const selector=direction===1?presentation.next:presentation.back;
   if(method==='keyboard'){await page.evaluate(()=>document.activeElement?.blur());await page.keyboard.press(direction===1?'ArrowRight':'ArrowLeft');}
@@ -47,11 +49,11 @@ async function changeSceneState(page,presentation,index){
     await page.locator('#play').click();await page.waitForTimeout(100);await page.locator('#play').click();
   }else if(presentation.name==='rhine'){
     if(index===0&&await page.locator('#illustrationToggle').isVisible())await page.locator('#illustrationToggle').click();
-    if(index===0&&await page.locator('#showSpins').isVisible())await page.locator('#showSpins').click();
-    if(index===1)await setRange(page,'#dipG',90);
-    if(index===2){await page.locator('#loopPair').click();await setRange(page,'#loopX',2);await setRange(page,'#loopRadius',3.5);}
+    if(index===0&&await page.locator('#showSpins').isVisible()){await page.locator('#showSpins').click();await page.locator('#waterView').click();}
+    if(index===1){await setRange(page,'#dipG',40);await setRange(page,'#dipG',80);}
+    if(index===2){await page.locator('#loopPair').click();await setRange(page,'#loopX',0);await setRange(page,'#loopRadius',3);}
     if(index===3)await page.locator('[data-line="arch"]').click();
-    if(index===4)await setRange(page,'#light',85);
+    if(index===4){await setRange(page,'#light',5);await setRange(page,'#light',95);}
     if(await page.locator('#reveal-result').count())await page.locator('#reveal-result').click();
     await page.locator('#pause').click();await page.waitForTimeout(100);
   }
